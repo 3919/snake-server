@@ -10,13 +10,12 @@ import javax.ws.rs.core.Response;
 
 @Path("/login")
 public class Authentication{
-    String PWD= "/home/windspring/git_repos/snake-server/src/main/";
     @GET
     public Response getPage()
     {
         try
         {
-            File file = new File(PWD + "web_content/login.html");
+            File file = new File("/home/windspring/git_repos/snake-server/src/main/web_content/login.html");
             FileInputStream fis = new FileInputStream(file);
             byte[] data = new byte[(int) file.length()];
             fis.read(data);
@@ -31,35 +30,47 @@ public class Authentication{
     }
 
     @POST
-	@Path("/snake")
 	public Response authenticate(
-		@FormParam("name") String name,
-		@FormParam("age") int age) 
-    {
-        //create connection for a server installed in localhost, with a user "root" with no password
-        try (Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost/", "wind", "alamakota")) {
+		@FormParam("userid") String uid,
+		@FormParam("password") String password) 
+    {     
+        //create connection for a server installed in localhost, with a user "wind"
+        try{
+            //STEP 2: Register JDBC driver
+            Class.forName("org.mariadb.jdbc.Driver");
+            Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
             // create a Statement
-            try (Statement stmt = conn.createStatement()) {
+            try
+            {
+                PreparedStatement stmt = conn.prepareStatement("select * from Users where user_name=? and user_hash=?");
+                String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
+                stmt.setString(1, uid);
+                stmt.setString(2, pass_hash);
                 //execute query
-                try (ResultSet rs = stmt.executeQuery("SELECT 'Hello World!'")) {
+                try{
+                    ResultSet res = stmt.executeQuery();
                     //position result to first
-                    rs.first();
-                    return Response.ok("You are authenticated").build();
+                    if(res.next())
+                    { 
+                        return Response.ok("You are authenticated").build();
+                    }
                 }
                 catch (SQLException e)
                 {
-                    // do something appropriate with the exception, *at least*:
                     e.printStackTrace();
                 }
             }
             catch (SQLException e)
             {
-                // do something appropriate with the exception, *at least*:
                 e.printStackTrace();
             }
         }
         catch (SQLException e)
         {
+            e.printStackTrace();
+        }
+        catch (Exception e) {
+            //Handle errors for Class.forName
             e.printStackTrace();
         }
         return Response.status(Response.Status.FORBIDDEN).entity("You are not a member of SKN MOS").build();
