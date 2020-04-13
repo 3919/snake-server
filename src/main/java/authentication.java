@@ -10,6 +10,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.servlet.http.*;
 import java.net.URI;
+
 @Path("/login")
 public class authentication{
 
@@ -21,6 +22,13 @@ public class authentication{
     {
         try
         {
+            HttpSession session = request.getSession(false);
+            if(session != null)
+            {
+                URI uri = new URI("/app");
+                return Response.seeOther(uri).build();
+            }
+
             String page = httpPageLoader.loadHTML("login.html",request.getContextPath());
             return Response.ok(page).build();
         }catch(Exception e)
@@ -34,7 +42,7 @@ public class authentication{
 	public Response authenticate(
 		@FormParam("userid") String uid,
 		@FormParam("password") String password) 
-    {     
+    {
         //create connection for a server installed in localhost, with a user "wind"
         try{
             //STEP 2: Register JDBC driver
@@ -49,12 +57,12 @@ public class authentication{
             ResultSet res = stmt.executeQuery();
             // check if user exist in db and passed correct data
             if(res.next())
-            { 
+            {
                 HttpSession session = request.getSession(true);
                 System.out.print("Session = " + session);
-                session.setMaxInactiveInterval(60);
+                session.setMaxInactiveInterval(3600);
                 URI uri = new URI("/app");
-                return Response.temporaryRedirect(uri).build();
+                return Response.seeOther(uri).build();
             }
         }
         catch (SQLException e)
