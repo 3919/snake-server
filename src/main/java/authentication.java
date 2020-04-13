@@ -61,6 +61,8 @@ public class authentication{
                 HttpSession session = request.getSession(true);
                 System.out.print("Session = " + session);
                 session.setMaxInactiveInterval(3600);
+                int user_privilege = res.getInt(4);
+                session.setAttribute("user_info",new userDescriptor(uid, user_privilege));
                 URI uri = new URI("/app");
                 return Response.seeOther(uri).build();
             }

@@ -22,6 +22,8 @@ public class snakeApp{
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to be here").build();
         }
 
-        return Response.ok("Mhm, no to mamy problem").build();
+        userDescriptor u = (userDescriptor)session.getAttribute("user_info");
+        
+        return Response.ok("User authenticated, privilege: " + u.getprivilege()).build();
     }
 };
