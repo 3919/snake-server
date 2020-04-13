@@ -11,13 +11,14 @@ import javax.ws.rs.core.Response;
 import javax.servlet.http.*;
 import java.net.URI;
 
-@Path("/login")
+@Path("")
 public class authentication{
 
     @Context
     private HttpServletRequest request;
 
     @GET
+    @Path("/login")
     public Response getPage()
     {
         try
@@ -39,6 +40,7 @@ public class authentication{
     }
 
     @POST
+    @Path("/login")
 	public Response authenticate(
 		@FormParam("userid") String uid,
 		@FormParam("password") String password) 
@@ -77,4 +79,16 @@ public class authentication{
         }
         return Response.status(Response.Status.FORBIDDEN).entity("You are not a member of SKN MOS").build();
 	}
+
+    @GET
+    @Path("/logout")
+    public Response logout()
+    {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to be here").build();
+        }
+        return getPage();
+    }
 }
