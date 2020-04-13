@@ -3,24 +3,25 @@ import java.sql.*;
 import java.io.*; 
 
 import javax.ws.rs.GET;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
-
+import javax.servlet.http.*;
+import java.net.URI;
 @Path("/login")
-public class Authentication{
+public class authentication{
+
+    @Context
+    private HttpServletRequest request;
+
     @GET
     public Response getPage()
     {
         try
         {
-            File file = new File("/home/windspring/git_repos/snake-server/src/main/web_content/login.html");
-            FileInputStream fis = new FileInputStream(file);
-            byte[] data = new byte[(int) file.length()];
-            fis.read(data);
-            fis.close();
-            String page = new String(data, "UTF-8");
+            String page = httpPageLoader.loadHTML("login.html",request.getContextPath());
             return Response.ok(page).build();
         }catch(Exception e)
         {
@@ -40,29 +41,20 @@ public class Authentication{
             Class.forName("org.mariadb.jdbc.Driver");
             Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
             // create a Statement
-            try
-            {
-                PreparedStatement stmt = conn.prepareStatement("select * from Users where user_name=? and user_hash=?");
-                String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
-                stmt.setString(1, uid);
-                stmt.setString(2, pass_hash);
-                //execute query
-                try{
-                    ResultSet res = stmt.executeQuery();
-                    //position result to first
-                    if(res.next())
-                    { 
-                        return Response.ok("You are authenticated").build();
-                    }
-                }
-                catch (SQLException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-            catch (SQLException e)
-            {
-                e.printStackTrace();
+            PreparedStatement stmt = conn.prepareStatement("select * from Users where user_name=? and user_hash=?");
+            String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
+            stmt.setString(1, uid);
+            stmt.setString(2, pass_hash);
+            //execute query
+            ResultSet res = stmt.executeQuery();
+            // check if user exist in db and passed correct data
+            if(res.next())
+            { 
+                HttpSession session = request.getSession(true);
+                System.out.print("Session = " + session);
+                session.setMaxInactiveInterval(60);
+                URI uri = new URI("/app");
+                return Response.temporaryRedirect(uri).build();
             }
         }
         catch (SQLException e)
