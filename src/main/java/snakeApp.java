@@ -66,4 +66,12 @@ public class snakeApp{
 
 		return templateEngine.process("/test.html", context);
 	}
+    @GET
+    @Path("/index")
+    public void getHome(@Context HttpServletRequest request, 
+                        @Context HttpServletResponse response) throws Exception {
+        request.setAttribute("surname", "Cysterna");
+        request.getRequestDispatcher("/some.jsp")
+               .forward(request, response);
+    }
 };
