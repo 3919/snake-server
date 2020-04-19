@@ -96,7 +96,7 @@ public class authentication{
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not allowed to be here");
             return;
         }
-
+        session.invalidate();
         response.sendRedirect(config.getLoginUrl());
     }
 }

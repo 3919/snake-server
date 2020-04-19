@@ -30,9 +30,24 @@ public class snakeApp{
         }
 
         userDescriptor u = (userDescriptor)session.getAttribute("user_info");
-        request.setAttribute("surname", "Cysterna");
+        request.setAttribute("temp_in",      32.7);
+        request.setAttribute("humidity_out", 38.2);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
+    }
+
+    @GET
+    @Path(config.user_edit_url)
+    public void renderEdit()throws Exception
+    {
+
+    }
+
+    @POST
+    @Path(config.user_edit_url)
+    public void serviceEdit()throws Exception
+    {
+
     }
 
     @GET
@@ -45,7 +60,7 @@ public class snakeApp{
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to be here").build();
         }
 
-        URI uri = new URI(config.getLogoutUrl());
+        URI uri = new URI(config.logout_url);
         return Response.seeOther(uri).build();
     }
 };
