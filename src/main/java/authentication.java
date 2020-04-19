@@ -10,32 +10,38 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.servlet.http.*;
 import java.net.URI;
+import javax.servlet.ServletConfig;
 
 @Path("")
 public class authentication{
 
     @Context
     private HttpServletRequest request;
+    
+	@Context
+	private HttpServletResponse response;
+
+    @Context
+    private ServletConfig servletConfig;
 
     @GET
     @Path("/login")
-    public Response getPage()
+    public void getPage() throws Exception
     {
         try
         {
             HttpSession session = request.getSession(false);
             if(session != null)
             {
-                URI uri = new URI("/app");
-                return Response.seeOther(uri).build();
+                response.sendRedirect("/rest/app");
+                return;
             }
-
-            String page = httpPageLoader.loadHTML("login.html",request.getContextPath());
-            return Response.ok(page).build();
+            request.getRequestDispatcher("/login.html")
+                   .forward(request, response);
         }catch(Exception e)
         {
             System.out.println("Exception thrown  :" + e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("OPS, some error occured").build();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error ");
         }
     }
 
@@ -73,8 +79,8 @@ public class authentication{
         {
             e.printStackTrace();
         }
-        catch (Exception e) {
-            //Handle errors for Class.forName
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
         return Response.status(Response.Status.FORBIDDEN).entity("You are not a member of SKN MOS").build();
@@ -82,13 +88,15 @@ public class authentication{
 
     @GET
     @Path("/logout")
-    public Response logout()
+    public void logout() throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to be here").build();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not allowed to be here");
+            return;
         }
-        return getPage();
+
+        response.sendRedirect("/rest/login");
     }
 }
