@@ -9,11 +9,8 @@ import javax.ws.rs.core.Response;
 import javax.servlet.http.*;
 import java.net.URI;
 import javax.ws.rs.core.MediaType;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
 
-@Path("/app")
+@Path(config.app_url)
 public class snakeApp{
 
     @Context
@@ -28,18 +25,18 @@ public class snakeApp{
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect("/rest/login");
+            response.sendRedirect(config.getLoginUrl());
             return;
         }
 
         userDescriptor u = (userDescriptor)session.getAttribute("user_info");
         request.setAttribute("surname", "Cysterna");
-        request.getRequestDispatcher("/some.jsp")
+        request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
     }
 
     @GET
-    @Path("/logout")
+    @Path(config.logout_url)
     public Response logout() throws Exception
     {
         HttpSession session = request.getSession(false);
@@ -48,7 +45,7 @@ public class snakeApp{
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to be here").build();
         }
 
-        URI uri = new URI("rest/logout");
+        URI uri = new URI(config.getLogoutUrl());
         return Response.seeOther(uri).build();
     }
 };

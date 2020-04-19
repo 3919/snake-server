@@ -25,7 +25,7 @@ public class authentication{
     private ServletConfig servletConfig;
 
     @GET
-    @Path("/login")
+    @Path(config.login_url)
     public void getPage() throws Exception
     {
         try
@@ -33,10 +33,10 @@ public class authentication{
             HttpSession session = request.getSession(false);
             if(session != null)
             {
-                response.sendRedirect("/rest/app");
+                response.sendRedirect(config.getAppUrl());
                 return;
             }
-            request.getRequestDispatcher("/login.html")
+            request.getRequestDispatcher(config.login_page)
                    .forward(request, response);
         }catch(Exception e)
         {
@@ -46,7 +46,7 @@ public class authentication{
     }
 
     @POST
-    @Path("/login")
+    @Path(config.login_url)
 	public Response authenticate(
 		@FormParam("userid") String uid,
 		@FormParam("password") String password) 
@@ -71,7 +71,7 @@ public class authentication{
                 session.setMaxInactiveInterval(3600);
                 int user_privilege = res.getInt(4);
                 session.setAttribute("user_info",new userDescriptor(uid, user_privilege));
-                URI uri = new URI("/app");
+                URI uri = new URI(config.app_url);
                 return Response.seeOther(uri).build();
             }
         }
@@ -87,7 +87,7 @@ public class authentication{
 	}
 
     @GET
-    @Path("/logout")
+    @Path(config.logout_url)
     public void logout() throws Exception
     {
         HttpSession session = request.getSession(false);
@@ -97,6 +97,6 @@ public class authentication{
             return;
         }
 
-        response.sendRedirect("/rest/login");
+        response.sendRedirect(config.getLoginUrl());
     }
 }
