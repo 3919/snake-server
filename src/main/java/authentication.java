@@ -11,6 +11,7 @@ import javax.ws.rs.core.Response;
 import javax.servlet.http.*;
 import java.net.URI;
 import javax.servlet.ServletConfig;
+import javax.ws.rs.NotFoundException;
 
 @Path("")
 public class authentication{
