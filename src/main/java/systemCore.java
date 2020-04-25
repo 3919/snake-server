@@ -13,6 +13,8 @@ import javax.ws.rs.core.Response;
 import javax.enterprise.context.ApplicationScoped;
 import javax.validation.*;
 import javax.validation.constraints.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.Consumes;
 
 @ApplicationScoped
 @Path("")
@@ -41,7 +43,6 @@ public class systemCore
     public systemCore()
     {
         try{
-        
             Class.forName("org.mariadb.jdbc.Driver");
             conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
     
@@ -77,6 +78,7 @@ public class systemCore
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     @Path(config.sensor_update_url)
     public Response handleSensor(@Valid sensor_msg msg)
     {

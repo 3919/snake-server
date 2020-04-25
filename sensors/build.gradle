@@ -1,0 +1,29 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'java-library'
+
+repositories {
+    mavenCentral()
+    jcenter();
+}
+
+configurations { 
+    localDeps
+}
+
+dependencies {
+    localDeps group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+    localDeps group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1'
+    localDeps group: 'javax.enterprise', name: 'cdi-api', version: '2.0.SP1'
+    localDeps group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+    localDeps group: 'org.glassfish.jersey.core', name: 'jersey-server', version: '2.0-m01'
+    localDeps group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+    compile configurations.localDeps
+}
+
+task copyToLib(type: Copy) {
+    from configurations.localDeps
+    into "$buildDir/output/lib"
+}
+
+build.dependsOn copyToLib
