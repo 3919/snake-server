@@ -73,23 +73,32 @@ public class authentication{
             // check if user exist in db and passed correct data
             if(res.next())
             {
-                if(!isAccountValid(res.getString(9)))
+                String account_expire_time = res.getString(9);
+                if(!isAccountValid(account_expire_time))
                 {
                     return Response.status(Response.Status.FORBIDDEN).entity("Your account expired. Please contact the head of skn mos").build();
                 }
 
+                InputStream input = res.getBinaryStream("rfid");
+                byte[] rfid = new byte[1024];
+                input.read(rfid);
+
                 HttpSession session = request.getSession(true);
                 int id = res.getInt(1);
                 int user_privilege = res.getInt(4);
+                int pin = res.getInt(5);
                 String user_name = res.getString(6);
                 String user_surname = res.getString(7);
-                String user_nick = res.getString(8);
+                String user_nick = res.getString(8); 
                 userDescriptor u = new userDescriptor(id,
                                                       login, 
-                                                      user_privilege, 
+                                                      user_privilege,
+                                                      pin,
                                                       user_name, 
                                                       user_surname, 
                                                       user_nick,
+                                                      account_expire_time,
+                                                      rfid,
                                                       new Date());
                 session.setAttribute("user_info", u);
                 sc.addUser(u);

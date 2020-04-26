@@ -7,27 +7,42 @@ public class userDescriptor
 
    private int id;
    private int privilege;
+   private int pin;
    
    private String name;
    
    private String surname;
    
    private String nick;
+   private String accountexpire;
 
    private Date created;
+   byte [] rfid;
    
    private int activeSessions=0;
 
-   userDescriptor(int e_id, String login, int priv, String u_name, String u_surname, String u_nick, Date u_created)
+   userDescriptor(int e_id, 
+                  String login, 
+                  int priv,
+                  int u_pin,
+                  String u_name, 
+                  String u_surname, 
+                  String u_nick, 
+                  String u_accountexpire,
+                  byte[] u_rfid,
+                  Date u_created)
    {
     id = e_id;
     userlogin = login;
     privilege = priv;
+    pin = u_pin;
     name = u_name;
     surname = u_surname;
     nick =u_nick;
-    activeSessions++;
+    accountexpire = u_accountexpire;
+    rfid = u_rfid;
     created = u_created;
+    activeSessions++;
    }
 
    public int getid()
@@ -42,6 +57,10 @@ public class userDescriptor
    {
     return privilege;
    }
+   public int getpin()
+   {
+    return pin;
+   }
    public String getname()
    {
      return name;
@@ -53,6 +72,14 @@ public class userDescriptor
    public String getnick()
    {
      return nick;
+   }
+   public String getaccountexpire()
+   {
+     return accountexpire;
+   }
+   public String getrfid()
+   {
+     return "";
    }
    public Date getcreated()
    {

@@ -118,15 +118,29 @@ public class snakeApp{
     }
 
     @GET
-    @Path(config.user_edit_url)
-    public void renderEdit()throws Exception
+    @Path(config.user_manage_url)
+    public void renderUserManagerPage()throws Exception
+    {
+
+    }
+
+    @POST
+    @Path(config.user_add_url)
+    public void addUser()throws Exception
     {
 
     }
 
     @POST
     @Path(config.user_edit_url)
-    public void serviceEdit()throws Exception
+    public void editUser()throws Exception
+    {
+
+    }
+
+    @GET
+    @Path(config.user_remove_url)
+    public void removeUser()throws Exception
     {
 
     }
