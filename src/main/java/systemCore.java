@@ -94,33 +94,44 @@ public class systemCore
         };
         return Response.ok("").build();
     }
+    
+    userDescriptor findUser(userDescriptor u)
+    {
+        for(int i =0; i < state.loggedUsers.size(); i++)
+        {
+            userDescriptor u_tmp = state.loggedUsers.get(i);
+            if(u_tmp.getid() == u.getid())
+            {
+                return u_tmp;
+            }
+        }
+        return null;
+    }
 
     public void addUser(userDescriptor u)
     {
-        // if user allready logged, do nothing
-        for(int i =0; i < state.loggedUsers.size(); i++)
+        // if user allready logged, only increment active user sessions
+        userDescriptor user = findUser(u); 
+        if (user != null)
         {
-            if(state.loggedUsers.get(i).getid() == u.getid())
-                return;
+           user.newSessionCreated();
+           return;
         }
+
         state.loggedUsers.add(u);
-        if(state.loggedUsers.size() > 0)
-            state.labOpen = true;
+        state.labOpen = true;
         System.out.println("Logged: " + state.loggedUsers.size());
     }
 
     public void removeUser(userDescriptor u)
     {
-        for(int i =0; i < state.loggedUsers.size(); i++)
-        {
-            userDescriptor u_tmp = state.loggedUsers.get(i);
-            if(u_tmp.isValid() == false)
-            {
-                state.loggedUsers.remove(u_tmp);
-            }
-        }
+        
+        userDescriptor user = findUser(u); 
+        int leftSessions = user.sessionDestroyed();
+        if(leftSessions > 0)
+            return;
 
-        state.loggedUsers.remove(u);
+        state.loggedUsers.remove(user);
         if(state.loggedUsers.size() == 0)
             state.labOpen = false;
         System.out.println("Logged: " + state.loggedUsers.size());

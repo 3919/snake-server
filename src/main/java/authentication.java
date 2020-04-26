@@ -78,17 +78,18 @@ public class authentication{
                 }
 
                 HttpSession session = request.getSession(true);
-                final int exp_unit = 3600;
-                session.setMaxInactiveInterval(exp_unit);
-                Date expireTime = new Date();
-                expireTime.setTime(expireTime.getTime() + exp_unit*1000);
                 int id = res.getInt(1);
                 int user_privilege = res.getInt(4);
                 String user_name = res.getString(6);
                 String user_surname = res.getString(7);
                 String user_nick = res.getString(8);
-                userDescriptor u = new userDescriptor(id,login, user_privilege, user_name, user_surname, user_nick, expireTime);
-                session.setAttribute("user_info",u);
+                userDescriptor u = new userDescriptor(id,
+                                                      login, 
+                                                      user_privilege, 
+                                                      user_name, 
+                                                      user_surname, 
+                                                      user_nick);
+                session.setAttribute("user_info", u);
                 sc.addUser(u);
                 URI uri = new URI(config.app_url);
                 return Response.seeOther(uri).build();
@@ -115,8 +116,6 @@ public class authentication{
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not allowed to be here");
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        sc.removeUser(u);
         session.invalidate();
         response.sendRedirect(config.getLoginUrl());
     }

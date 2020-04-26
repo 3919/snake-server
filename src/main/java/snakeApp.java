@@ -41,6 +41,7 @@ public class snakeApp{
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
     }
+
     void requestSetAttributes(double tmp, double hum, int pass_stat)
     {
         request.setAttribute("temp_in",      tmp);
@@ -126,12 +127,6 @@ public class snakeApp{
     @Path(config.logout_url)
     public Response logout() throws Exception
     {
-        HttpSession session = request.getSession(false);
-        if(session == null)
-        {
-            return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to be here").build();
-        }
-
         URI uri = new URI(config.logout_url);
         return Response.seeOther(uri).build();
     }

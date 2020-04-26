@@ -19,9 +19,9 @@ public class userDescriptor
    
    private String nick;
    
-   private Date sessionExpires;
+   private int activeSessions=0;
 
-   userDescriptor(int id, String login, int priv, String name, String surname, String nick, Date expire)
+   userDescriptor(int id, String login, int priv, String name, String surname, String nick)
    {
     id = id;
     userlogin = login;
@@ -29,7 +29,7 @@ public class userDescriptor
     name = name;
     surname = surname;
     nick =nick;
-    sessionExpires = expire;
+    activeSessions++;
    }
 
    public int getid()
@@ -56,9 +56,16 @@ public class userDescriptor
    {
      return nick;
    }
-   public boolean isValid()
+   int newSessionCreated()
    {
-     return sessionExpires.compareTo(new Date()) < 0;
+    activeSessions++;
+    return activeSessions;
+   }
+
+   int sessionDestroyed()
+   {
+    activeSessions--;
+    return activeSessions;
    }
 
    public void setid(int id)
