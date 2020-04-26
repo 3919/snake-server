@@ -8,6 +8,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.servlet.http.*;
 import java.net.URI;
@@ -270,8 +271,10 @@ public class snakeApp{
 
         }
         ResultSet res = stmt.executeQuery();
+        
     }
-    // this method returns requested user to fill form
+
+    //this method returns requested user to fill form
     @POST
     @Path(config.user_edit_url)
     public void editUser()throws Exception
@@ -281,9 +284,14 @@ public class snakeApp{
 
     @GET
     @Path(config.user_remove_url)
-    public void removeUser()throws Exception
+    public void removeUser(@PathParam("id") String id)throws Exception
     {
-
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("delete from users where id=?");
+        stmt.setString(1, id);
+        stmt.executeQuery();
+        renderUserManagerPage();   
     }
 
     @GET
