@@ -15,6 +15,9 @@ import javax.ws.rs.core.MediaType;
 import javax.inject.Inject;
 import java.util.Date;
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+
 
 @Path(config.app_url)
 public class snakeApp{
@@ -177,14 +180,98 @@ public class snakeApp{
         request.getRequestDispatcher(config.edit_page)
                .forward(request, response);
     }
-
-    @POST
-    @Path(config.user_add_url)
-    public void addUser()throws Exception
-    {
-
+    
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                                 + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
     }
 
+    // add/edit user based on delivered data
+    // when id is not set eq -1, append new user
+    // otherwise try to update date for requested id
+    @POST
+    @Path(config.user_url)
+    public void addUser(
+		@FormParam("userid") int id,
+		@FormParam("login") String login,
+		@FormParam("password") String password,
+		@FormParam("privilege") int priv,
+		@FormParam("pin") int pin,
+		@FormParam("name") String name,
+		@FormParam("surname") String surname,
+		@FormParam("nick") String nick,
+		@FormParam("expire") String expire,
+		@FormParam("expire") String rfid) throws Exception
+    {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        if(u.getprivilege() != privilege.ADMIN)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt;
+        String query = "";
+        byte [] raw_rfid;
+        // validate data, than add user
+        if( id == -1)
+        {
+            if(login.length() == 0 || password.length() == 0 || priv< 0 ||  priv >2 || pin >1000 && name.length() == 0 || surname.length() == 0 || nick.length() == 0)
+            {
+                request.setAttribute("status",       1);
+                request.setAttribute("u_info",       u);
+                request.setAttribute("users",   getAllUsers());
+                request.getRequestDispatcher(config.edit_page)
+                       .forward(request, response);
+                return;
+
+            }
+            SimpleDateFormat formatter = 
+                new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date date = formatter.parse(expire);
+            } catch (ParseException e) {
+                request.setAttribute("status",       1);
+                request.setAttribute("u_info",       u);
+                request.setAttribute("users",   getAllUsers());
+                request.getRequestDispatcher(config.edit_page)
+                       .forward(request, response);
+                return;
+            }
+            String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
+            raw_rfid = hexStringToByteArray(rfid);
+            query = "INSERT INTO Users(login, pass_hash, privilage, pin, user_name, user_surname, user_nick, valid_till, rfid) VALUES(?,?,?,?,?,?,?,?,?)";
+        stmt = conn.prepareStatement(query);
+        stmt.setString(1, login);
+        stmt.setString(2, pass_hash);
+        stmt.setInt(3, priv);
+        stmt.setInt(4, pin);
+        stmt.setString(5, name);
+        stmt.setString(6, surname);
+        stmt.setString(7, nick);
+        stmt.setString(8, expire);
+        InputStream input= new ByteArrayInputStream(raw_rfid);
+        stmt.setBinaryStream(9, input);
+        }else // validate data, than update user
+        {
+            stmt = conn.prepareStatement(query);
+
+        }
+        ResultSet res = stmt.executeQuery();
+    }
+    // this method returns requested user to fill form
     @POST
     @Path(config.user_edit_url)
     public void editUser()throws Exception
