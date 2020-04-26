@@ -37,13 +37,15 @@ public class snakeApp{
             response.sendRedirect(config.getLoginUrl());
             return;
         }
-        requestSetAttributes(32.7, 37.6, PassStatus.PASS_IDLE);
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        requestSetAttributes(32.7, 37.6, PassStatus.PASS_IDLE, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
     }
 
-    void requestSetAttributes(double tmp, double hum, int pass_stat)
+    void requestSetAttributes(double tmp, double hum, int pass_stat, userDescriptor u)
     {
+        request.setAttribute("u_info",       u);
         request.setAttribute("temp_in",      tmp);
         request.setAttribute("humidity_out", hum);
         request.setAttribute("response_msg", pass_stat);
@@ -74,7 +76,7 @@ public class snakeApp{
         ResultSet res = stmt.executeQuery();
         if(!res.next())
         {
-            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
+            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
@@ -82,7 +84,7 @@ public class snakeApp{
         // new passwords match?
         if(!n_password.equals(r_password))  
         {
-            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
+            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
@@ -97,13 +99,13 @@ public class snakeApp{
         int rowsUpdated = stmt.executeUpdate();
         if(rowsUpdated == 0)
         {
-            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
+            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
         }
 
-        requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_OK);
+        requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_OK, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
         return;
@@ -127,6 +129,13 @@ public class snakeApp{
     @Path(config.logout_url)
     public Response logout() throws Exception
     {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            URI uri = new URI(config.getLoginUrl());
+            return Response.seeOther(uri).build();
+        }
+
         URI uri = new URI(config.logout_url);
         return Response.seeOther(uri).build();
     }

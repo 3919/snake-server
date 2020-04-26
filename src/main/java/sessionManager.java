@@ -13,16 +13,13 @@ public class sessionManager implements HttpSessionListener {
   
   @Override
   public void sessionCreated(HttpSessionEvent se) {
-      System.out.println("-- HttpSessionListener#sessionCreated invoked --");
       HttpSession session = se.getSession();
-      session.setMaxInactiveInterval(10);
+      session.setMaxInactiveInterval(3600);
   }
 
   @Override
   public void sessionDestroyed(HttpSessionEvent se) {
-      System.out.println("-- HttpSessionListener#sessionDestroyed invoked --");
       HttpSession session = se.getSession();
-    
       userDescriptor u =(userDescriptor)session.getAttribute("user_info");
       sc.removeUser(u);
   }

@@ -1,15 +1,9 @@
 package rest;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Max;
-import java.util.Date;
 
 public class userDescriptor
 {
-   @NotNull
    private String userlogin;
 
-   @NotNull
-   @Max(3)
    private int id;
    private int privilege;
    
@@ -21,14 +15,14 @@ public class userDescriptor
    
    private int activeSessions=0;
 
-   userDescriptor(int id, String login, int priv, String name, String surname, String nick)
+   userDescriptor(int e_id, String login, int priv, String u_name, String u_surname, String u_nick)
    {
-    id = id;
+    id = e_id;
     userlogin = login;
     privilege = priv;
-    name = name;
-    surname = surname;
-    nick =nick;
+    name = u_name;
+    surname = u_surname;
+    nick =u_nick;
     activeSessions++;
    }
 

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <%@ page import = "rest.snakeApp.*" %>
+<%@ page import = "rest.privilege" %>
+<%@ page import = "rest.userDescriptor" %>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -105,6 +107,10 @@
 </div>
 <div id ="wrapper">
   <div id ="user_content"> 
+    <%
+      userDescriptor u =(userDescriptor)request.getAttribute("u_info"); 
+      out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
+    %>
     <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir> </h3>
     <h3>Current humidity inside laboratory:<div name="humidity_out">${humidity_out}</dir> </h3>
     <h3>Logged users: </h3>

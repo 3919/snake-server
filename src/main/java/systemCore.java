@@ -120,7 +120,6 @@ public class systemCore
 
         state.loggedUsers.add(u);
         state.labOpen = true;
-        System.out.println("Logged: " + state.loggedUsers.size());
     }
 
     public void removeUser(userDescriptor u)
@@ -134,7 +133,6 @@ public class systemCore
         state.loggedUsers.remove(user);
         if(state.loggedUsers.size() == 0)
             state.labOpen = false;
-        System.out.println("Logged: " + state.loggedUsers.size());
     } 
 }
 

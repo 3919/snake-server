@@ -89,6 +89,7 @@ public class authentication{
                                                       user_name, 
                                                       user_surname, 
                                                       user_nick);
+                System.out.println(u.getuserlogin() + " " + u.getsurname());
                 session.setAttribute("user_info", u);
                 sc.addUser(u);
                 URI uri = new URI(config.app_url);
