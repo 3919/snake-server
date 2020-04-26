@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import javax.servlet.http.*;
 import java.net.URI;
 import javax.ws.rs.core.MediaType;
+import javax.inject.Inject;
 
 @Path(config.app_url)
 public class snakeApp{
@@ -27,6 +28,9 @@ public class snakeApp{
     
 	@Context
 	private HttpServletResponse response;
+    
+    @Inject
+    private systemCore sc;
 
     @GET
     public void renderApp() throws Exception
@@ -38,16 +42,18 @@ public class snakeApp{
             return;
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        requestSetAttributes(32.7, 37.6, PassStatus.PASS_IDLE, u);
+        requestSetAttributes(PassStatus.PASS_IDLE, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
     }
 
-    void requestSetAttributes(double tmp, double hum, int pass_stat, userDescriptor u)
+    void requestSetAttributes(int pass_stat, userDescriptor u)
     {
+        laboratoryState l = sc.getLabState();
         request.setAttribute("u_info",       u);
-        request.setAttribute("temp_in",      tmp);
-        request.setAttribute("humidity_out", hum);
+        request.setAttribute("active_users", l.loggedUsers);
+        request.setAttribute("temp_in",      l.temperature);
+        request.setAttribute("humidity_out", l.humidity);
         request.setAttribute("response_msg", pass_stat);
     }
 
@@ -76,7 +82,7 @@ public class snakeApp{
         ResultSet res = stmt.executeQuery();
         if(!res.next())
         {
-            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED,u);
+            requestSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
@@ -84,7 +90,7 @@ public class snakeApp{
         // new passwords match?
         if(!n_password.equals(r_password))  
         {
-            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED,u);
+            requestSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
@@ -99,13 +105,13 @@ public class snakeApp{
         int rowsUpdated = stmt.executeUpdate();
         if(rowsUpdated == 0)
         {
-            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED,u);
+            requestSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
         }
 
-        requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_OK, u);
+        requestSetAttributes(PassStatus.PASS_CHANGE_OK, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
         return;

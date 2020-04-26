@@ -14,6 +14,7 @@ import javax.servlet.ServletConfig;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.inject.Inject;
+import java.util.Date;
 
 @Path("")
 public class authentication{
@@ -88,8 +89,8 @@ public class authentication{
                                                       user_privilege, 
                                                       user_name, 
                                                       user_surname, 
-                                                      user_nick);
-                System.out.println(u.getuserlogin() + " " + u.getsurname());
+                                                      user_nick,
+                                                      new Date());
                 session.setAttribute("user_info", u);
                 sc.addUser(u);
                 URI uri = new URI(config.app_url);

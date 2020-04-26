@@ -2,6 +2,13 @@
 <%@ page import = "rest.snakeApp.*" %>
 <%@ page import = "rest.privilege" %>
 <%@ page import = "rest.userDescriptor" %>
+<%@ page import = "java.util.ArrayList" %>
+<%@ page import = "java.text.SimpleDateFormat" %>
+<%
+  userDescriptor u =(userDescriptor)request.getAttribute("u_info");  
+  ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("active_users");
+  SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
+%>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -96,6 +103,21 @@
     #user_content{
       float:left;
     }
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
 
 </style>
 </head>
@@ -103,17 +125,37 @@
 
 <div class="navbar">
   <a href="app/logout">Logout</a>
-  <a href="app/edit">Edit users</a>
+  <% if (u.getprivilege() == privilege.ADMIN) { %>
+    <a href="app/edit">Edit users</a>
+  <% }%>
 </div>
 <div id ="wrapper">
   <div id ="user_content"> 
     <%
-      userDescriptor u =(userDescriptor)request.getAttribute("u_info"); 
       out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
     %>
     <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir> </h3>
     <h3>Current humidity inside laboratory:<div name="humidity_out">${humidity_out}</dir> </h3>
     <h3>Logged users: </h3>
+      <table>
+      <tr>
+      <td>Name</td> 
+      <td>Surname</td> 
+      <td>Nick</td> 
+      <td>Active since</td> 
+      </tr>
+      <%
+        for(int i =0; i < users.size(); i++)
+        {
+        out.println("<tr>");
+          out.println("<td>" + users.get(i).getname() + "</td>");
+          out.println("<td>" + users.get(i).getsurname() + "</td>");
+          out.println("<td>" + users.get(i).getnick()+ "</td>");
+          out.println("<td>" + formatter.format(users.get(i).getcreated()) + "</td>");
+        out.println("</tr>");
+        }
+      %>
+      </table>
   </div>
   
   <div id="form_user_pass">

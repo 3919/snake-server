@@ -39,7 +39,7 @@ public class systemCore
     
     private laboratoryState state = new laboratoryState();
     private Connection conn;
-
+    
     public systemCore()
     {
         try{
@@ -50,6 +50,10 @@ public class systemCore
         {
             e.printStackTrace();
         }
+    }
+    public laboratoryState getLabState()
+    {
+        return state;
     }
 
     @POST
@@ -119,20 +123,16 @@ public class systemCore
         }
 
         state.loggedUsers.add(u);
-        state.labOpen = true;
     }
 
     public void removeUser(userDescriptor u)
     {
-        
         userDescriptor user = findUser(u); 
         int leftSessions = user.sessionDestroyed();
         if(leftSessions > 0)
             return;
 
         state.loggedUsers.remove(user);
-        if(state.loggedUsers.size() == 0)
-            state.labOpen = false;
     } 
 }
 
