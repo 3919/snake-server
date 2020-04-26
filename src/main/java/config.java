@@ -7,8 +7,8 @@ public class config
     public static final String logout_url = "/logout";
     public static final String app_url = "/app";
 
-    public static final String user_manage_url = "/user";
-    public static final String user_add_url = "/add";
+    public static final String user_manage_url = "/users";
+    public static final String user_add_url = "/edit";
     public static final String user_edit_url = "/edit/{id}";
     public static final String user_remove_url = "/remove/{id}";
 

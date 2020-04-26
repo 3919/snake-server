@@ -13,6 +13,8 @@ import javax.servlet.http.*;
 import java.net.URI;
 import javax.ws.rs.core.MediaType;
 import javax.inject.Inject;
+import java.util.Date;
+import java.util.ArrayList;
 
 @Path(config.app_url)
 public class snakeApp{
@@ -117,11 +119,63 @@ public class snakeApp{
         return;
     }
 
+    ArrayList<userDescriptor> getAllUsers() throws Exception
+    {
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select * from Users");
+        ResultSet res = stmt.executeQuery();
+        ArrayList<userDescriptor> users = new ArrayList<userDescriptor>();  
+        while(res.next())
+        {
+            InputStream input = res.getBinaryStream("rfid");
+            byte[] rfid = new byte[1024];
+            input.read(rfid);
+
+            HttpSession session = request.getSession(true);
+            int id = res.getInt(1);
+            String login= res.getString(2);
+            int user_privilege = res.getInt(4);
+            int pin = res.getInt(5);
+            String user_name = res.getString(6);
+            String user_surname = res.getString(7);
+            String user_nick = res.getString(8); 
+            String account_expire_time = res.getString(9);
+            userDescriptor u = new userDescriptor(id,
+                                                  login, 
+                                                  user_privilege,
+                                                  pin,
+                                                  user_name, 
+                                                  user_surname, 
+                                                  user_nick,
+                                                  account_expire_time,
+                                                  rfid,
+                                                  new Date());
+            users.add(u);
+        }
+        return users;
+    }
+
     @GET
     @Path(config.user_manage_url)
     public void renderUserManagerPage()throws Exception
     {
-
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        if(u.getprivilege() != privilege.ADMIN)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        request.setAttribute("u_info",       u);
+        request.setAttribute("users",   getAllUsers());
+        request.getRequestDispatcher(config.edit_page)
+               .forward(request, response);
     }
 
     @POST

@@ -79,7 +79,7 @@ public class userDescriptor
    }
    public String getrfid()
    {
-     return "";
+     return new String(rfid);
    }
    public Date getcreated()
    {

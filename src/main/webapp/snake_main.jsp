@@ -126,7 +126,7 @@
 <div class="navbar">
   <a href="app/logout">Logout</a>
   <% if (u.getprivilege() == privilege.ADMIN) { %>
-    <a href="app/edit">Edit users</a>
+    <a href="app/users">Edit users</a>
   <% }%>
 </div>
 <div id ="wrapper">

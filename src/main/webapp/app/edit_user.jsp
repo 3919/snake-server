@@ -5,6 +5,7 @@
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
 <%
+  userDescriptor u =(userDescriptor)request.getAttribute("u_info");  
   ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("users");
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
 %>
@@ -112,9 +113,9 @@
 <body>
 
 <div class="navbar">
-  <a href="app/logout">Logout</a>
+  <a href="logout">Logout</a>
   <% if (u.getprivilege() == privilege.ADMIN) { %>
-    <a href="app/edit">Edit users</a>
+    <a href="users">Edit users</a>
   <% }%>
 
 </div>
@@ -122,7 +123,7 @@
     <%
       out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
     %>
-    <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir> </h3>
+    <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir></h3>
     <h3>Current humidity inside laboratory:<div name="humidity_out">${humidity_out}</dir> </h3>
     <h3>Logged users: </h3>
       <table>
@@ -136,8 +137,8 @@
           <td>Nick</td> 
           <td>Account expiration date</td> 
           <td>RFID</td> 
-          <td>Remove</td> 
           <td>Edit</td> 
+          <td>Remove</td> 
         </tr>
       <%
         for(int i =0; i < users.size(); i++)
@@ -152,9 +153,8 @@
           out.println("<td>" + users.get(i).getnick()+ "</td>");
           out.println("<td>" + users.get(i).getaccountexpire()+ "</td>");
           out.println("<td>" + users.get(i).getrfid()+ "</td>");
-          out.println("<td>" + formatter.format(users.get(i).getcreated()) + "</td>");
-          out.println("<td><a href=\"app/remove/" +users.get(i).getid()+"\">remove</a></td>");
-          out.println("<a href=\"app/edit/" +users.get(i).getid()+"\">edit</a></td>");
+          out.println("<td><a href=\"remove/" +users.get(i).getid()+"\">remove</a></td>");
+          out.println("<td><a href=\"edit/" +users.get(i).getid()+"\">edit</a></td>");
         out.println("</tr>");
         }
       %>
