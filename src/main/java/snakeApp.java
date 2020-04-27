@@ -29,6 +29,12 @@ public class snakeApp{
         public static final int PASS_IDLE = -1;
     }
 
+    public final class EditStatus{
+        public static final int OK     = 0;
+        public static final int FAILED = 1;
+        public static final int IDLE= -1;
+    }
+
     @Context
     private HttpServletRequest request;
     
@@ -48,19 +54,27 @@ public class snakeApp{
             return;
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        requestSetAttributes(PassStatus.PASS_IDLE, u);
+        appSetAttributes(PassStatus.PASS_IDLE, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
     }
 
-    void requestSetAttributes(int pass_stat, userDescriptor u)
+    void appSetAttributes(int pass_status, userDescriptor u)
     {
         laboratoryState l = sc.getLabState();
         request.setAttribute("u_info",       u);
         request.setAttribute("active_users", l.loggedUsers);
         request.setAttribute("temp_in",      l.temperature);
         request.setAttribute("humidity_out", l.humidity);
-        request.setAttribute("response_msg", pass_stat);
+        request.setAttribute("response_msg", pass_status);
+    }
+
+    void editSetAttributes(int edit_status, userDescriptor user, userDescriptor edited_user ) throws Exception
+    {
+        request.setAttribute("e_status",     edit_status);
+        request.setAttribute("u_info",       user);
+        request.setAttribute("edited_user",  edited_user);
+        request.setAttribute("users",        getAllUsers());
     }
 
     @POST
@@ -88,7 +102,7 @@ public class snakeApp{
         ResultSet res = stmt.executeQuery();
         if(!res.next())
         {
-            requestSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
+            appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
@@ -96,7 +110,7 @@ public class snakeApp{
         // new passwords match?
         if(!n_password.equals(r_password))  
         {
-            requestSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
+            appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
@@ -111,13 +125,13 @@ public class snakeApp{
         int rowsUpdated = stmt.executeUpdate();
         if(rowsUpdated == 0)
         {
-            requestSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
+            appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
             request.getRequestDispatcher(config.snake_page)
                    .forward(request, response);
             return;
         }
 
-        requestSetAttributes(PassStatus.PASS_CHANGE_OK, u);
+        appSetAttributes(PassStatus.PASS_CHANGE_OK, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
         return;
@@ -176,8 +190,7 @@ public class snakeApp{
             response.sendRedirect(config.getLoginUrl());
             return;
         }
-        request.setAttribute("u_info",       u);
-        request.setAttribute("users",   getAllUsers());
+        editSetAttributes(EditStatus.IDLE, u, new userDescriptor());
         request.getRequestDispatcher(config.edit_page)
                .forward(request, response);
     }
@@ -221,77 +234,171 @@ public class snakeApp{
             response.sendRedirect(config.getLoginUrl());
             return;
         }
+        // validate required fileds
+        if(login.length() == 0 || priv< 0 ||  priv >2 || pin >1000)
+        {
+            editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+            request.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
+            return;
+        }
+        SimpleDateFormat formatter = 
+            new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date date = formatter.parse(expire);
+        } catch (ParseException e) {
+           editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+           request.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
+           return;
+        }
+        // end of validation
+
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt;
-        String query = "";
         byte [] raw_rfid;
-        // validate data, than add user
+        raw_rfid = hexStringToByteArray(rfid);
         if( id == -1)
         {
-            if(login.length() == 0 || password.length() == 0 || priv< 0 ||  priv >2 || pin >1000 && name.length() == 0 || surname.length() == 0 || nick.length() == 0)
+            if(password.length() == 0)
             {
-                request.setAttribute("status",       1);
-                request.setAttribute("u_info",       u);
-                request.setAttribute("users",   getAllUsers());
-                request.getRequestDispatcher(config.edit_page)
-                       .forward(request, response);
-                return;
-
-            }
-            SimpleDateFormat formatter = 
-                new SimpleDateFormat("yyyy-MM-dd");
-            try {
-                Date date = formatter.parse(expire);
-            } catch (ParseException e) {
-                request.setAttribute("status",       1);
-                request.setAttribute("u_info",       u);
-                request.setAttribute("users",   getAllUsers());
+                editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
                 request.getRequestDispatcher(config.edit_page)
                        .forward(request, response);
                 return;
             }
             String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
-            raw_rfid = hexStringToByteArray(rfid);
-            query = "INSERT INTO Users(login, pass_hash, privilage, pin, user_name, user_surname, user_nick, valid_till, rfid) VALUES(?,?,?,?,?,?,?,?,?)";
-        stmt = conn.prepareStatement(query);
-        stmt.setString(1, login);
-        stmt.setString(2, pass_hash);
-        stmt.setInt(3, priv);
-        stmt.setInt(4, pin);
-        stmt.setString(5, name);
-        stmt.setString(6, surname);
-        stmt.setString(7, nick);
-        stmt.setString(8, expire);
-        InputStream input= new ByteArrayInputStream(raw_rfid);
-        stmt.setBinaryStream(9, input);
-        }else // validate data, than update user
-        {
-            stmt = conn.prepareStatement(query);
-
+            stmt = conn.prepareStatement("INSERT INTO Users(login, pass_hash, privilege, pin, user_name, user_surname, user_nick, valid_till, rfid) VALUES(?,?,?,?,?,?,?,?,?)");
+            stmt.setString(1, login);
+            stmt.setString(2, pass_hash);
+            stmt.setInt(3, priv);
+            stmt.setInt(4, pin);
+            stmt.setString(5, name);
+            stmt.setString(6, surname);
+            stmt.setString(7, nick);
+            stmt.setString(8, expire);
+            InputStream input= new ByteArrayInputStream(raw_rfid);
+            stmt.setBinaryStream(9, input);
         }
-        ResultSet res = stmt.executeQuery();
+        else // validate data, than update user
+        {
+            stmt = conn.prepareStatement("UPDATE Users SET login=?, privilege=?, pin=?, user_name=?,usr_surname=?, user_nikc=?, valid_till=?, rfid=? WHERE id=?");
+            stmt.setString(1, login);
+            stmt.setInt(2, priv);
+            stmt.setInt(3, pin);
+            stmt.setString(4, name);
+            stmt.setString(5, surname);
+            stmt.setString(6, nick);
+            stmt.setString(7, expire);
+            InputStream input= new ByteArrayInputStream(raw_rfid);
+            stmt.setBinaryStream(8, input);
+            stmt.setInt(9, id);
+        }
+
+        int rowsUpdated = stmt.executeUpdate();
+        if(rowsUpdated == 0)
+        {
+           editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+           request.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
+           return;
+        }
         
+        editSetAttributes(EditStatus.OK, u, new userDescriptor());
+        request.getRequestDispatcher(config.edit_page)
+               .forward(request, response);
     }
 
     //this method returns requested user to fill form
     @POST
     @Path(config.user_edit_url)
-    public void editUser()throws Exception
+    public void editUser(@PathParam("id") int id)throws Exception
     {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        if(u.getprivilege() != privilege.ADMIN)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select * from users where id=?");
+        stmt.setInt(1, id);
+        ResultSet res = stmt.executeQuery();
+        if(!res.next())
+        {
+           editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+           request.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
+           return;
+        }
 
+        InputStream input = res.getBinaryStream("rfid");
+        byte[] rfid = new byte[1024];
+        input.read(rfid);
+
+        String login= res.getString(2);
+        int user_privilege = res.getInt(4);
+        int pin = res.getInt(5);
+        String user_name = res.getString(6);
+        String user_surname = res.getString(7);
+        String user_nick = res.getString(8); 
+        String account_expire_time = res.getString(9);
+        userDescriptor e_user = new userDescriptor(id,
+                                                   login, 
+                                                   user_privilege,
+                                                   pin,
+                                                   user_name, 
+                                                   user_surname, 
+                                                   user_nick,
+                                                   account_expire_time,
+                                                   rfid,
+                                                   new Date());
+
+        editSetAttributes(EditStatus.OK, u, e_user);
+        request.getRequestDispatcher(config.edit_page)
+               .forward(request, response);
+        
     }
 
     @GET
     @Path(config.user_remove_url)
     public void removeUser(@PathParam("id") String id)throws Exception
     {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        if(u.getprivilege() != privilege.ADMIN)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("delete from users where id=?");
         stmt.setString(1, id);
-        stmt.executeQuery();
-        renderUserManagerPage();   
+        int rowsUpdated = stmt.executeUpdate();
+        if(rowsUpdated == 0)
+        {
+            appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
+            request.getRequestDispatcher(config.snake_page)
+                   .forward(request, response);
+            return;
+        }
+        editSetAttributes(EditStatus.OK, u, new userDescriptor());
+        request.getRequestDispatcher(config.edit_page)
+               .forward(request, response);
     }
 
     @GET

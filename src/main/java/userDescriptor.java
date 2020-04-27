@@ -5,10 +5,10 @@ public class userDescriptor
 {
    private String userlogin;
 
-   private int id;
-   private int privilege;
-   private int pin;
-   
+   private int id=-1;
+   private int privilege=0;
+   private int pin; 
+      
    private String name;
    
    private String surname;
@@ -20,6 +20,10 @@ public class userDescriptor
    byte [] rfid;
    
    private int activeSessions=0;
+   userDescriptor()
+   {
+    created= new Date();
+   }
 
    userDescriptor(int e_id, 
                   String login, 
