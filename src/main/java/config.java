@@ -14,7 +14,7 @@ public class config
 
     public static final String sensor_auth_url = "/sensor/auth";
     public static final String sensor_update_url = "/sensor";
-    
+ 
     // web resources
     public static final String login_page = "login.html";
     public static final String snake_page = "snake_main.jsp";
@@ -31,5 +31,9 @@ public class config
 
     public static String getAppUrl(){
         return war_url + app_url;
+    }
+
+    public static String getUserEditUrl(){
+        return war_url + app_url + user_manage_url;
     }
 };

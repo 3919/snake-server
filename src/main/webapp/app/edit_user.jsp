@@ -5,7 +5,9 @@
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
 <%
-  userDescriptor u =(userDescriptor)request.getAttribute("u_info");  
+  int op_status =(int)request.getAttribute("e_status");  
+  userDescriptor u =(userDescriptor)request.getAttribute("u_info");
+  userDescriptor e_user =(userDescriptor)request.getAttribute("edited_user");  
   ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("users");
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
 %>
@@ -107,6 +109,49 @@
     tr:nth-child(even) {
       background-color: #dddddd;
     }
+    body {font-family: Arial, Helvetica, sans-serif;}
+    * {box-sizing: border-box;}
+
+    .form-inline {  
+      display: flex;
+      flex-flow: row wrap;
+      align-items: center;
+    }
+
+    .form-inline label {
+      margin: 5px 10px 5px 0;
+    }
+
+    .form-inline input {
+      vertical-align: middle;
+      margin: 5px 10px 5px 0;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+    }
+
+    .form-inline button {
+      padding: 10px 20px;
+      background-color: dodgerblue;
+      border: 1px solid #ddd;
+      color: white;
+      cursor: pointer;
+    }
+
+    .form-inline button:hover {
+      background-color: royalblue;
+    }
+
+    @media (max-width: 800px) {
+      .form-inline input {
+        margin: 10px 0;
+      }
+      
+      .form-inline {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
 
 </style>
 </head>
@@ -114,18 +159,49 @@
 
 <div class="navbar">
   <a href="logout">Logout</a>
-  <% if (u.getprivilege() == privilege.ADMIN) { %>
-    <a href="users">Edit users</a>
-  <% }%>
-
+  <a href="/rest/app">App</a>
 </div>
   <div id ="user_content"> 
     <%
       out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
     %>
-    <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir></h3>
-    <h3>Current humidity inside laboratory:<div name="humidity_out">${humidity_out}</dir> </h3>
-    <h3>Logged users: </h3>
+  <h3>Add/Edit user form</h3>
+  <form class="form-inline" action="/user">
+    
+    <label for="userid">Id:</label>
+    <input type="text" id="userid" placeholder="User id" name="userid">
+    
+    <label for="login">Login:</label>
+    <input type="text" id="login" placeholder="User login" name="login">
+
+    <label for="pwd">Password:</label>
+    <input type="password" id="pwd" placeholder="User password" name="password">
+    
+    <label for="priv">Privilege:</label>
+    <input type="text" id="priv" placeholder="User privilege" name="privilege">
+    
+    <label for="pin">Pin:</label>
+    <input type="text" id="pin" placeholder="User pin" name="pin">
+    
+    <label for="name">Name:</label>
+    <input type="text" id="name" placeholder="User name" name="name">
+    
+    <label for="surname">Surname:</label>
+    <input type="text" id="surname" placeholder="User surname" name="surname">
+    
+    <label for="nick">Nick:</label>
+    <input type="text" id="nick" placeholder="User nick" name="nick">
+    
+    <label for="expire">Account expire date:</label>
+    <input type="text" id="expire" placeholder="Expire date" name="expire">
+    
+    <label for="rfid">Rfid:</label>
+    <input type="text" id="rfid" placeholder="User rfid" name="rfid">
+    
+    <button type="submit">Submit</button>
+  </form>
+    <h1>Status ${e_status}</h1>
+    <h3>Members of skn mos: </h3>
       <table>
         <tr>
           <td>Id</td> 
@@ -143,19 +219,19 @@
       <%
         for(int i =0; i < users.size(); i++)
         {
-        out.println("<tr>");
-          out.println("<td>" + users.get(i).getid() + "</td>");
-          out.println("<td>" + users.get(i).getuserlogin() + "</td>");
-          out.println("<td>" + users.get(i).getprivilege() + "</td>");
-          out.println("<td>" + users.get(i).getpin() + "</td>");
-          out.println("<td>" + users.get(i).getname() + "</td>");
-          out.println("<td>" + users.get(i).getsurname() + "</td>");
-          out.println("<td>" + users.get(i).getnick()+ "</td>");
-          out.println("<td>" + users.get(i).getaccountexpire()+ "</td>");
-          out.println("<td>" + users.get(i).getrfid()+ "</td>");
-          out.println("<td><a href=\"remove/" +users.get(i).getid()+"\">remove</a></td>");
-          out.println("<td><a href=\"edit/" +users.get(i).getid()+"\">edit</a></td>");
-        out.println("</tr>");
+          out.println("<tr>");
+            out.println("<td>" + users.get(i).getid() + "</td>");
+            out.println("<td>" + users.get(i).getuserlogin() + "</td>");
+            out.println("<td>" + users.get(i).getprivilege() + "</td>");
+            out.println("<td>" + users.get(i).getpin() + "</td>");
+            out.println("<td>" + users.get(i).getname() + "</td>");
+            out.println("<td>" + users.get(i).getsurname() + "</td>");
+            out.println("<td>" + users.get(i).getnick()+ "</td>");
+            out.println("<td>" + users.get(i).getaccountexpire()+ "</td>");
+            out.println("<td>" + users.get(i).getrfid()+ "</td>");
+            out.println("<td><a href=\"/rest/app/edit/" +users.get(i).getid()+"\">edit</a></td>");
+            out.println("<td><a href=\"/rest/app/remove/" +users.get(i).getid()+"\">remove</a></td>");
+          out.println("</tr>");
         }
       %>
       </table>

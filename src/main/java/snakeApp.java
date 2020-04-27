@@ -69,11 +69,13 @@ public class snakeApp{
         request.setAttribute("response_msg", pass_status);
     }
 
-    void editSetAttributes(int edit_status, userDescriptor user, userDescriptor edited_user ) throws Exception
+    void editSetAttributes(int edit_status, userDescriptor user, userDescriptor edited_user) throws Exception
     {
-        request.setAttribute("e_status",     edit_status);
+        if(request.getAttribute("e_status") == null)
+            request.setAttribute("e_status",     edit_status);
         request.setAttribute("u_info",       user);
         request.setAttribute("edited_user",  edited_user);
+
         request.setAttribute("users",        getAllUsers());
     }
 
@@ -219,7 +221,7 @@ public class snakeApp{
 		@FormParam("surname") String surname,
 		@FormParam("nick") String nick,
 		@FormParam("expire") String expire,
-		@FormParam("expire") String rfid) throws Exception
+		@FormParam("rfid") String rfid) throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
@@ -236,7 +238,7 @@ public class snakeApp{
         // validate required fileds
         if(login.length() == 0 || priv< 0 ||  priv >2 || pin >1000)
         {
-            editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+            editSetAttributes(EditStatus.FAILED, u,null);
             request.getRequestDispatcher(config.edit_page)
                    .forward(request, response);
             return;
@@ -246,7 +248,7 @@ public class snakeApp{
         try {
             Date date = formatter.parse(expire);
         } catch (ParseException e) {
-           editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+            editSetAttributes(EditStatus.FAILED, u,null);
            request.getRequestDispatcher(config.edit_page)
                    .forward(request, response);
            return;
@@ -262,7 +264,7 @@ public class snakeApp{
         {
             if(password.length() == 0)
             {
-                editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+            editSetAttributes(EditStatus.FAILED, u,null);
                 request.getRequestDispatcher(config.edit_page)
                        .forward(request, response);
                 return;
@@ -298,13 +300,13 @@ public class snakeApp{
         int rowsUpdated = stmt.executeUpdate();
         if(rowsUpdated == 0)
         {
-           editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+            editSetAttributes(EditStatus.FAILED, u,null);
            request.getRequestDispatcher(config.edit_page)
                    .forward(request, response);
            return;
         }
         
-        editSetAttributes(EditStatus.OK, u, new userDescriptor());
+        editSetAttributes(EditStatus.OK, u, null);
         request.getRequestDispatcher(config.edit_page)
                .forward(request, response);
     }
@@ -312,8 +314,9 @@ public class snakeApp{
     //this method returns requested user to fill form
     @POST
     @Path(config.user_edit_url)
-    public void editUser(@PathParam("id") int id)throws Exception
+    public void editUser(@PathParam("id") String id)throws Exception
     {
+        System.out.println("asdasdsadbkhjasdhasd");
         HttpSession session = request.getSession(false);
         if(session == null)
         {
@@ -328,12 +331,12 @@ public class snakeApp{
         }
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select * from users where id=?");
-        stmt.setInt(1, id);
+        PreparedStatement stmt = conn.prepareStatement("select * from Users where id=?");
+        stmt.setString(1, id);
         ResultSet res = stmt.executeQuery();
         if(!res.next())
         {
-           editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+           editSetAttributes(EditStatus.FAILED, u,null);
            request.getRequestDispatcher(config.edit_page)
                    .forward(request, response);
            return;
@@ -350,7 +353,7 @@ public class snakeApp{
         String user_surname = res.getString(7);
         String user_nick = res.getString(8); 
         String account_expire_time = res.getString(9);
-        userDescriptor e_user = new userDescriptor(id,
+        userDescriptor edited_user = new userDescriptor(Integer.parseInt(id),
                                                    login, 
                                                    user_privilege,
                                                    pin,
@@ -360,7 +363,7 @@ public class snakeApp{
                                                    account_expire_time,
                                                    rfid);
 
-        editSetAttributes(EditStatus.OK, u, e_user);
+        editSetAttributes(EditStatus.OK, u, edited_user);
         request.getRequestDispatcher(config.edit_page)
                .forward(request, response);
         
@@ -384,19 +387,20 @@ public class snakeApp{
         }
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("delete from users where id=?");
+        PreparedStatement stmt = conn.prepareStatement("delete from Users where id=?");
         stmt.setString(1, id);
         int rowsUpdated = stmt.executeUpdate();
         if(rowsUpdated == 0)
         {
-            appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
-            request.getRequestDispatcher(config.snake_page)
-                   .forward(request, response);
+            editSetAttributes(EditStatus.FAILED, u, null);
+            response.sendRedirect(config.getUserEditUrl());
             return;
         }
-        editSetAttributes(EditStatus.OK, u, new userDescriptor());
-        request.getRequestDispatcher(config.edit_page)
+        
+        editSetAttributes(EditStatus.OK, u, null);
+        request.getRequestDispatcher("/rest/app/users")
                .forward(request, response);
+        return;
     }
 
     @GET
