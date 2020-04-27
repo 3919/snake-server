@@ -33,8 +33,7 @@ public class userDescriptor
                   String u_surname, 
                   String u_nick, 
                   String u_accountexpire,
-                  byte[] u_rfid,
-                  Date u_created)
+                  byte[] u_rfid)
    {
     id = e_id;
     userlogin = login;
@@ -45,7 +44,7 @@ public class userDescriptor
     nick =u_nick;
     accountexpire = u_accountexpire;
     rfid = u_rfid;
-    created = u_created;
+    created= new Date();
     activeSessions++;
    }
 

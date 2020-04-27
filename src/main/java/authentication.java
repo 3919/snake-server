@@ -98,8 +98,7 @@ public class authentication{
                                                       user_surname, 
                                                       user_nick,
                                                       account_expire_time,
-                                                      rfid,
-                                                      new Date());
+                                                      rfid);
                 session.setAttribute("user_info", u);
                 sc.addUser(u);
                 URI uri = new URI(config.app_url);

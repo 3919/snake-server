@@ -167,8 +167,7 @@ public class snakeApp{
                                                   user_surname, 
                                                   user_nick,
                                                   account_expire_time,
-                                                  rfid,
-                                                  new Date());
+                                                  rfid);
             users.add(u);
         }
         return users;
@@ -359,8 +358,7 @@ public class snakeApp{
                                                    user_surname, 
                                                    user_nick,
                                                    account_expire_time,
-                                                   rfid,
-                                                   new Date());
+                                                   rfid);
 
         editSetAttributes(EditStatus.OK, u, e_user);
         request.getRequestDispatcher(config.edit_page)
