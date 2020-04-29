@@ -126,7 +126,7 @@
 <div class="navbar">
   <a href="app/logout">Logout</a>
   <% if (u.getprivilege() == privilege.ADMIN) { %>
-    <a href="app/users">Edit users</a>
+    <a href="users">Edit users</a>
   <% }%>
 </div>
 <div id ="wrapper">
@@ -147,12 +147,12 @@
       <%
         for(int i =0; i < users.size(); i++)
         {
-        out.println("<tr>");
-          out.println("<td>" + users.get(i).getname() + "</td>");
-          out.println("<td>" + users.get(i).getsurname() + "</td>");
-          out.println("<td>" + users.get(i).getnick()+ "</td>");
-          out.println("<td>" + formatter.format(users.get(i).getcreated()) + "</td>");
-        out.println("</tr>");
+          out.println("<tr>");
+            out.println("<td>" + users.get(i).getname() + "</td>");
+            out.println("<td>" + users.get(i).getsurname() + "</td>");
+            out.println("<td>" + users.get(i).getnick()+ "</td>");
+            out.println("<td>" + formatter.format(users.get(i).getcreated()) + "</td>");
+          out.println("</tr>");
         }
       %>
       </table>
@@ -168,7 +168,7 @@
             }else{
                 out.println("<h6 style=\"color:red\">Your password hasn't been changed </h6>");
             }
-          }
+        }
       %>
     <form action="app" method="Post">
       <label for="old_pass">Old password:</label><br>

@@ -3,21 +3,21 @@ import java.util.Date;
 
 public class userDescriptor
 {
-   private String userlogin;
+   private String userlogin="";
 
    private int id=-1;
    private int privilege=0;
-   private int pin; 
+   private int pin;
       
-   private String name;
+   private String name="";
    
-   private String surname;
+   private String surname="";
    
-   private String nick;
+   private String nick = "";
    private String accountexpire;
 
    private Date created;
-   byte [] rfid;
+   byte [] rfid= new byte[1];
    
    private int activeSessions=0;
    userDescriptor()

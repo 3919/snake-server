@@ -4,10 +4,20 @@
 <%@ page import = "rest.userDescriptor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
+<%@ page import = "javax.servlet.jsp.PageContext" %>
 <%
-  int op_status =(int)request.getAttribute("e_status");  
-  userDescriptor u =(userDescriptor)request.getAttribute("u_info");
-  userDescriptor e_user =(userDescriptor)request.getAttribute("edited_user");  
+  int op_status =(int)request.getAttribute("status");
+  userDescriptor curr_u =(userDescriptor)request.getAttribute("current_user");
+  userDescriptor edited_u =(userDescriptor)request.getAttribute("edited_user");
+  pageContext.setAttribute("edited_id",edited_u.getid());
+  pageContext.setAttribute("edited_login",edited_u.getuserlogin());
+  pageContext.setAttribute("edited_priv",edited_u.getprivilege());
+  pageContext.setAttribute("edited_pin",edited_u.getpin());
+  pageContext.setAttribute("edited_name",edited_u.getname());
+  pageContext.setAttribute("edited_surname",edited_u.getsurname());
+  pageContext.setAttribute("edited_nick",edited_u.getnick());
+  pageContext.setAttribute("edited_expire",edited_u.getaccountexpire());
+  pageContext.setAttribute("edited_rfid",edited_u.getrfid());
   ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("users");
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
 %>
@@ -163,44 +173,44 @@
 </div>
   <div id ="user_content"> 
     <%
-      out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
+      out.println("<h3>Hi <div name=\"user_info\">" + curr_u.getname() + " " + curr_u.getsurname() + "</dir> </h3>");
     %>
   <h3>Add/Edit user form</h3>
-  <form class="form-inline" action="/user">
+  <form class="form-inline" action="/rest/users" method="post">
     
     <label for="userid">Id:</label>
-    <input type="text" id="userid" placeholder="User id" name="userid">
+    <input type="text" id="userid" placeholder="User id" name="userid" value="${edited_id}">
     
     <label for="login">Login:</label>
-    <input type="text" id="login" placeholder="User login" name="login">
+    <input type="text" id="login" placeholder="User login" name="login" value="${edited_login}">
 
     <label for="pwd">Password:</label>
     <input type="password" id="pwd" placeholder="User password" name="password">
     
     <label for="priv">Privilege:</label>
-    <input type="text" id="priv" placeholder="User privilege" name="privilege">
+    <input type="text" id="priv" placeholder="User privilege" name="privilege" value="${edited_priv}">
     
     <label for="pin">Pin:</label>
-    <input type="text" id="pin" placeholder="User pin" name="pin">
+    <input type="text" id="pin" placeholder="User pin" name="pin" value="${edited_pin}">
     
     <label for="name">Name:</label>
-    <input type="text" id="name" placeholder="User name" name="name">
+    <input type="text" id="name" placeholder="User name" name="name" value="${edited_name}">
     
     <label for="surname">Surname:</label>
-    <input type="text" id="surname" placeholder="User surname" name="surname">
+    <input type="text" id="surname" placeholder="User surname" name="surname" value="${edited_surname}">
     
     <label for="nick">Nick:</label>
-    <input type="text" id="nick" placeholder="User nick" name="nick">
+    <input type="text" id="nick" placeholder="User nick" name="nick" value="${edited_nick}">
     
     <label for="expire">Account expire date:</label>
-    <input type="text" id="expire" placeholder="Expire date" name="expire">
+    <input type="text" id="expire" placeholder="Expire date" name="expire" value="${edited_expire}">
     
     <label for="rfid">Rfid:</label>
-    <input type="text" id="rfid" placeholder="User rfid" name="rfid">
+    <input type="text" id="rfid" placeholder="User rfid" name="rfid" value="${edited_rfid}">
     
     <button type="submit">Submit</button>
   </form>
-    <h1>Status ${e_status}</h1>
+    <h1>Status ${status}</h1>
     <h3>Members of skn mos: </h3>
       <table>
         <tr>
@@ -229,8 +239,8 @@
             out.println("<td>" + users.get(i).getnick()+ "</td>");
             out.println("<td>" + users.get(i).getaccountexpire()+ "</td>");
             out.println("<td>" + users.get(i).getrfid()+ "</td>");
-            out.println("<td><a href=\"/rest/app/edit/" +users.get(i).getid()+"\">edit</a></td>");
-            out.println("<td><a href=\"/rest/app/remove/" +users.get(i).getid()+"\">remove</a></td>");
+            out.println("<td><a href=\"/rest/users/" +users.get(i).getid()+"\">edit</a></td>");
+            out.println("<td><a href=\"/rest/users/remove/" +users.get(i).getid()+"\">remove</a></td>");
           out.println("</tr>");
         }
       %>

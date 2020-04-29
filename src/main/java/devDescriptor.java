@@ -2,11 +2,11 @@ package rest;
 public class devDescriptor
 {
     String dev;
-    int privilage;
+    int privilege;
     devDescriptor(String d, int p)
     {
         dev = d;
-        privilage = p;
+        privilege = p;
     }
 };
 
