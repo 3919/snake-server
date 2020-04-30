@@ -136,6 +136,7 @@
     %>
     <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir> </h3>
     <h3>Current humidity inside laboratory:<div name="humidity_out">${humidity_out}</dir> </h3>
+    <h3>Is laboratory open:<div name="humidity_out">${humidity_out}</dir> </h3>
     <h3>Logged users: </h3>
       <table>
       <tr>

@@ -14,6 +14,9 @@ public class config
     public static final String sensor_auth_url = "/sensor/auth";
     public static final String sensor_update_url = "/sensor";
  
+    public static final String lab_unlock_url = "/unlock";
+    public static final String lab_lock_url = "/lock";
+    
     // web resources
     public static final String login_page = "/login.html";
     public static final String snake_page = "/snake_main.jsp";

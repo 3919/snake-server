@@ -79,7 +79,7 @@ public class snakeApp{
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
+        PreparedStatement stmt = conn.prepareStatement("select * from users where login=? and pass_hash=?");
         String pass_hash = sha256.toHexString(sha256.getSHA(o_password)); 
         String login = u.getuserlogin(); 
         stmt.setString(1, login);
@@ -120,6 +120,73 @@ public class snakeApp{
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
         return;
+    }
+
+    @GET
+    @Path(config.lab_unlock_url)
+    public void ulock_from_page() throws Exception
+    {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        sc.unlockLaboratory();
+        
+        appSetAttributes(PassStatus.PASS_IDLE, u);
+        request.getRequestDispatcher(config.snake_page)
+               .forward(request, response);
+    }
+
+    @GET
+    @Path(config.lab_lock_url) 
+    public void lock_from_page()throws Exception
+    {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        sc.lockLaboratory();
+        
+        appSetAttributes(PassStatus.PASS_IDLE, u);
+        request.getRequestDispatcher(config.snake_page)
+               .forward(request, response);
+    }
+
+    @POST
+    @Path(config.lab_unlock_url) 
+    public Response  ulock_from_sensors(
+            @FormParam("old_pass") int pin,
+            @FormParam("old_pass") String rfid
+           )throws Exception
+    {
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select rfid, OCTET_LENGTH(rfid) from users where pin=?");
+        stmt.setInt(1, pin);
+        ResultSet res = stmt.executeQuery();
+        if(!res.next())
+        {
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+
+        InputStream input = res.getBinaryStream("rfid");
+        int rfid_size = res.getInt(2);
+        byte[] rfid_raw = new byte[rfid_size];
+        input.read(rfid_raw);
+        String rfid_db = sha256.toHexString(rfid_raw);
+        if(rfid.equals(rfid_db) == false)
+        {
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+
+        sc.unlockLaboratory();
+        return Response.ok("").build();
     }
 
     @GET

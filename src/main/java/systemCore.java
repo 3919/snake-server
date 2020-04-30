@@ -1,5 +1,6 @@
 package rest;
 import java.sql.*;
+import com.fazecast.jSerialComm.*;
 
 import java.util.logging.Logger;
 import java.util.Date;
@@ -51,6 +52,34 @@ public class systemCore
             e.printStackTrace();
         }
     }
+
+    public void unlockLaboratory()
+    {
+        SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
+        boolean openedSuccessfully =locker.openPort(0);
+		if (!openedSuccessfully)
+			return;
+        locker.setBaudRate(115200);
+        byte[] open_msg = {0x2,0x1};
+        locker.writeBytes(open_msg, 2);
+        locker.closePort();
+        
+        state.labOpen=true;
+    }
+
+    public void lockLaboratory()
+    {
+        SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
+        boolean openedSuccessfully =locker.openPort(0);
+		if (!openedSuccessfully)
+			return;
+        locker.setBaudRate(115200);
+        byte[] open_msg = {0x2,0x2};
+        locker.writeBytes(open_msg, 2);
+        locker.closePort();
+        state.labOpen=false;
+    }
+
     public laboratoryState getLabState()
     {
         return state;

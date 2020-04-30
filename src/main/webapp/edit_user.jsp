@@ -234,7 +234,7 @@
 
       <p>Compulsory fields are: Login, Privilege, Pin, account expire date. <b>Mind you</b> that you can't edit user's password.</p>
       <h5>General rules</h5>
-      <p>Login has to be unique</p>
+      <p>Login and pin fileds have to be unique</p>
       <p>Pin's length has to be at least 4 signs</p>
       <p>Account expire data format is 	&lt;yyyy-mm-dd&gt;</p>
       <p>RFID is encoded as hexadecimal string, so allowed signs are: [0-9A-F]. Typing anything else causes to undefined behaviour</p>
