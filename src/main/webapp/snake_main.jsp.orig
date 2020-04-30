@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <%@ page import = "rest.snakeApp.*" %>
+<<<<<<< HEAD
+=======
 <%@ page import = "rest.privilege" %>
 <%@ page import = "rest.userDescriptor" %>
 <%@ page import = "java.util.ArrayList" %>
@@ -9,6 +11,7 @@
   ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("active_users");
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
 %>
+>>>>>>> origin/edit_page_servlet
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -103,6 +106,8 @@
     #user_content{
       float:left;
     }
+<<<<<<< HEAD
+=======
     table {
       font-family: arial, sans-serif;
       border-collapse: collapse;
@@ -118,6 +123,7 @@
     tr:nth-child(even) {
       background-color: #dddddd;
     }
+>>>>>>> origin/edit_page_servlet
 
 </style>
 </head>
@@ -182,6 +188,7 @@
     </center>
   </div>
 </div>
+<<<<<<< HEAD
 <div id ="wrapper">
   <div id ="user_content"> 
     <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir> </h3>
@@ -213,5 +220,7 @@
     </center>
   </div>
 </div>
+=======
+>>>>>>> origin/edit_page_servlet
 </body>
 </html>

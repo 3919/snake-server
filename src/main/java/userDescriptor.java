@@ -1,35 +1,51 @@
 package rest;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Max;
 import java.util.Date;
 
 public class userDescriptor
 {
-   @NotNull
-   private String userlogin;
+   private String userlogin="";
 
-   @NotNull
-   @Max(3)
-   private int id;
-   private int privilege;
+   private int id=-1;
+   private int privilege=0;
+   private int pin;
+      
+   private String name="";
    
-   private String name;
+   private String surname="";
    
-   private String surname;
-   
-   private String nick;
-   
-   private Date sessionExpires;
+   private String nick = "";
+   private String accountexpire;
 
-   userDescriptor(int id, String login, int priv, String name, String surname, String nick, Date expire)
+   private Date created;
+   byte [] rfid= new byte[1];
+   
+   private int activeSessions=0;
+   userDescriptor()
    {
-    id = id;
+    created= new Date();
+   }
+
+   userDescriptor(int e_id, 
+                  String login, 
+                  int priv,
+                  int u_pin,
+                  String u_name, 
+                  String u_surname, 
+                  String u_nick, 
+                  String u_accountexpire,
+                  byte[] u_rfid)
+   {
+    id = e_id;
     userlogin = login;
     privilege = priv;
-    name = name;
-    surname = surname;
-    nick =nick;
-    sessionExpires = expire;
+    pin = u_pin;
+    name = u_name;
+    surname = u_surname;
+    nick =u_nick;
+    accountexpire = u_accountexpire;
+    rfid = u_rfid;
+    created= new Date();
+    activeSessions++;
    }
 
    public int getid()
@@ -44,6 +60,10 @@ public class userDescriptor
    {
     return privilege;
    }
+   public int getpin()
+   {
+    return pin;
+   }
    public String getname()
    {
      return name;
@@ -56,9 +76,28 @@ public class userDescriptor
    {
      return nick;
    }
-   public boolean isValid()
+   public String getaccountexpire()
    {
-     return sessionExpires.compareTo(new Date()) < 0;
+     return accountexpire;
+   }
+   public String getrfid()
+   {
+     return sha256.toHexString(rfid);
+   }
+   public Date getcreated()
+   {
+     return created;
+   }
+   int newSessionCreated()
+   {
+    activeSessions++;
+    return activeSessions;
+   }
+
+   int sessionDestroyed()
+   {
+    activeSessions--;
+    return activeSessions;
    }
 
    public void setid(int id)
