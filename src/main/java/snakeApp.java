@@ -1,4 +1,7 @@
 package rest;
+import java.sql.*;
+import java.io.*; 
+
 import javax.ws.rs.GET;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.FormParam;
@@ -13,6 +16,12 @@ import javax.ws.rs.core.MediaType;
 @Path(config.app_url)
 public class snakeApp{
 
+    public final class PassStatus{
+        public static final int PASS_CHANGE_OK     = 0;
+        public static final int PASS_CHANGE_FAILED = 1;
+        public static final int PASS_IDLE = -1;
+    }
+
     @Context
     private HttpServletRequest request;
     
@@ -20,7 +29,7 @@ public class snakeApp{
 	private HttpServletResponse response;
 
     @GET
-    public void renderApp ()throws Exception
+    public void renderApp() throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
@@ -28,12 +37,75 @@ public class snakeApp{
             response.sendRedirect(config.getLoginUrl());
             return;
         }
-
-        userDescriptor u = (userDescriptor)session.getAttribute("user_info");
-        request.setAttribute("temp_in",      32.7);
-        request.setAttribute("humidity_out", 38.2);
+        requestSetAttributes(32.7, 37.6, PassStatus.PASS_IDLE);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
+    }
+    void requestSetAttributes(double tmp, double hum, int pass_stat)
+    {
+        request.setAttribute("temp_in",      tmp);
+        request.setAttribute("humidity_out", hum);
+        request.setAttribute("response_msg", pass_stat);
+    }
+
+    @POST
+    public void changeUserPassword(
+		@FormParam("old_pass") String o_password, 
+		@FormParam("new_pass") String n_password, 
+		@FormParam("new_pass_repeated") String r_password) 
+        throws Exception
+    {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        // checkc if old password is correct
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
+        String pass_hash = sha256.toHexString(sha256.getSHA(o_password)); 
+        String login = u.getuserlogin(); 
+        stmt.setString(1, login);
+        stmt.setString(2, pass_hash);
+        ResultSet res = stmt.executeQuery();
+        if(!res.next())
+        {
+            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
+            request.getRequestDispatcher(config.snake_page)
+                   .forward(request, response);
+            return;
+        }
+        // new passwords match?
+        if(!n_password.equals(r_password))  
+        {
+            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
+            request.getRequestDispatcher(config.snake_page)
+                   .forward(request, response);
+            return;
+        }
+        
+        // update new password
+        stmt = conn.prepareStatement("UPDATE Users SET pass_hash=? WHERE login=?");
+        pass_hash = sha256.toHexString(sha256.getSHA(n_password)); 
+
+        stmt.setString(1, pass_hash);
+        stmt.setString(2, login);
+        int rowsUpdated = stmt.executeUpdate();
+        if(rowsUpdated == 0)
+        {
+            requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
+            request.getRequestDispatcher(config.snake_page)
+                   .forward(request, response);
+            return;
+        }
+
+        requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_OK);
+        request.getRequestDispatcher(config.snake_page)
+               .forward(request, response);
+        return;
     }
 
     @GET
