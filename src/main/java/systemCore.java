@@ -39,7 +39,7 @@ public class systemCore
     
     private laboratoryState state = new laboratoryState();
     private Connection conn;
-
+    
     public systemCore()
     {
         try{
@@ -50,6 +50,10 @@ public class systemCore
         {
             e.printStackTrace();
         }
+    }
+    public laboratoryState getLabState()
+    {
+        return state;
     }
 
     @POST
@@ -94,36 +98,41 @@ public class systemCore
         };
         return Response.ok("").build();
     }
-
-    public void addUser(userDescriptor u)
-    {
-        // if user allready logged, do nothing
-        for(int i =0; i < state.loggedUsers.size(); i++)
-        {
-            if(state.loggedUsers.get(i).getid() == u.getid())
-                return;
-        }
-        state.loggedUsers.add(u);
-        if(state.loggedUsers.size() > 0)
-            state.labOpen = true;
-        System.out.println("Logged: " + state.loggedUsers.size());
-    }
-
-    public void removeUser(userDescriptor u)
+    
+    userDescriptor findUser(userDescriptor u)
     {
         for(int i =0; i < state.loggedUsers.size(); i++)
         {
             userDescriptor u_tmp = state.loggedUsers.get(i);
-            if(u_tmp.isValid() == false)
+            if(u_tmp.getid() == u.getid())
             {
-                state.loggedUsers.remove(u_tmp);
+                return u_tmp;
             }
         }
+        return null;
+    }
 
-        state.loggedUsers.remove(u);
-        if(state.loggedUsers.size() == 0)
-            state.labOpen = false;
-        System.out.println("Logged: " + state.loggedUsers.size());
+    public void addUser(userDescriptor u)
+    {
+        // if user allready logged, only increment active user sessions
+        userDescriptor user = findUser(u); 
+        if (user != null)
+        {
+           user.newSessionCreated();
+           return;
+        }
+
+        state.loggedUsers.add(u);
+    }
+
+    public void removeUser(userDescriptor u)
+    {
+        userDescriptor user = findUser(u); 
+        int leftSessions = user.sessionDestroyed();
+        if(leftSessions > 0)
+            return;
+
+        state.loggedUsers.remove(user);
     } 
 }
 

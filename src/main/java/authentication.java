@@ -14,6 +14,7 @@ import javax.servlet.ServletConfig;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.inject.Inject;
+import java.util.Date;
 
 @Path("")
 public class authentication{
@@ -72,23 +73,33 @@ public class authentication{
             // check if user exist in db and passed correct data
             if(res.next())
             {
-                if(!isAccountValid(res.getString(9)))
+                String account_expire_time = res.getString(9);
+                if(!isAccountValid(account_expire_time))
                 {
                     return Response.status(Response.Status.FORBIDDEN).entity("Your account expired. Please contact the head of skn mos").build();
                 }
 
+                InputStream input = res.getBinaryStream("rfid");
+                byte[] rfid = new byte[1024];
+                input.read(rfid);
+
                 HttpSession session = request.getSession(true);
-                final int exp_unit = 3600;
-                session.setMaxInactiveInterval(exp_unit);
-                Date expireTime = new Date();
-                expireTime.setTime(expireTime.getTime() + exp_unit*1000);
                 int id = res.getInt(1);
                 int user_privilege = res.getInt(4);
+                int pin = res.getInt(5);
                 String user_name = res.getString(6);
                 String user_surname = res.getString(7);
-                String user_nick = res.getString(8);
-                userDescriptor u = new userDescriptor(id,login, user_privilege, user_name, user_surname, user_nick, expireTime);
-                session.setAttribute("user_info",u);
+                String user_nick = res.getString(8); 
+                userDescriptor u = new userDescriptor(id,
+                                                      login, 
+                                                      user_privilege,
+                                                      pin,
+                                                      user_name, 
+                                                      user_surname, 
+                                                      user_nick,
+                                                      account_expire_time,
+                                                      rfid);
+                session.setAttribute("user_info", u);
                 sc.addUser(u);
                 URI uri = new URI(config.app_url);
                 return Response.seeOther(uri).build();
@@ -115,8 +126,6 @@ public class authentication{
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not allowed to be here");
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        sc.removeUser(u);
         session.invalidate();
         response.sendRedirect(config.getLoginUrl());
     }
