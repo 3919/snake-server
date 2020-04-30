@@ -37,30 +37,6 @@ public class userManagerServlet
     @Inject
     private systemCore sc;
     
-    public static String byteArrayToHexString(byte[] bytes) {
-        final char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-        char[] hexChars = new char[bytes.length * 2]; // Each byte has two hex characters (nibbles)
-        int v;
-        for (int j = 0; j < bytes.length; j++) {
-            v = bytes[j] & 0xFF; // Cast bytes[j] to int, treating as unsigned value
-            hexChars[j * 2] = hexArray[v >>> 4]; // Select hex character from upper nibble
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F]; // Select hex character from lower nibble
-        }
-        return new String(hexChars);
-    }
-    public static byte[] hexStringToByteArray(String s) throws IllegalArgumentException {
-        int len = s.length();
-        if (len % 2 == 1) {
-            throw new IllegalArgumentException("Hex string must have even number of characters");
-        }
-        byte[] data = new byte[len / 2]; // Allocate 1 byte per 2 hex characters
-        for (int i = 0; i < len; i += 2) {
-            // Convert each character into a integer (base-16), then bit-shift into place
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i+1), 16));
-        }
-        return data;
-    }
 
     void editSetAttributes(int status, userDescriptor user, userDescriptor edited_user) throws Exception
     {
@@ -74,13 +50,14 @@ public class userManagerServlet
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select * from Users");
+        PreparedStatement stmt = conn.prepareStatement("select *, OCTET_LENGTH(rfid) from Users");
         ResultSet res = stmt.executeQuery();
         ArrayList<userDescriptor> users = new ArrayList<userDescriptor>();  
         while(res.next())
         {
             InputStream input = res.getBinaryStream("rfid");
-            byte[] rfid = new byte[64];
+            int rfid_size = res.getInt(11);
+            byte[] rfid = new byte[rfid_size];
             input.read(rfid);
 
             HttpSession session = request.getSession(true);
@@ -181,8 +158,7 @@ public class userManagerServlet
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt;
-        byte [] raw_rfid;
-        raw_rfid = new byte[8];//hexStringToByteArray(rfid);
+        byte [] raw_rfid = sha256.toByteArray(rfid);
         if( id == -1)
         {
             if(password.length() == 0)
@@ -219,19 +195,25 @@ public class userManagerServlet
             stmt.setBinaryStream(8, input);
             stmt.setInt(9, id);
         }
-
-        int rowsUpdated = stmt.executeUpdate();
-        if(rowsUpdated == 0)
+        try{
+            int rowsUpdated = stmt.executeUpdate();
+            if(rowsUpdated == 0)
+            {
+                editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
+                ueServlet.getRequestDispatcher(config.edit_page)
+                       .forward(request, response);
+               return;
+            }
+            
+            editSetAttributes(EditStatus.OK, u, new userDescriptor());
+            ueServlet.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
+        }catch(Exception e)
         {
             editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
             ueServlet.getRequestDispatcher(config.edit_page)
                    .forward(request, response);
-           return;
         }
-        
-        editSetAttributes(EditStatus.OK, u, new userDescriptor());
-        ueServlet.getRequestDispatcher(config.edit_page)
-               .forward(request, response);
     }
 
     //this method returns requested user
@@ -255,41 +237,49 @@ public class userManagerServlet
         ServletContext ueServlet= request.getServletContext().getContext(config.getUserEditUrl());
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select * from Users where id=?");
+        PreparedStatement stmt = conn.prepareStatement("select *, OCTET_LENGTH(rfid) from Users where id=?");
         stmt.setString(1, id);
-        ResultSet res = stmt.executeQuery();
-        if(!res.next())
+        
+        try{
+            ResultSet res = stmt.executeQuery();
+            if(!res.next())
+            {
+               editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
+               ueServlet.getRequestDispatcher(config.edit_page)
+                      .forward(request, response);
+               return;
+            }
+
+            InputStream input = res.getBinaryStream("rfid");
+            int rfid_size = res.getInt(11);
+            byte[] rfid = new byte[rfid_size];
+            input.read(rfid);
+
+            String login= res.getString(2);
+            int user_privilege = res.getInt(4);
+            int pin = res.getInt(5);
+            String user_name = res.getString(6);
+            String user_surname = res.getString(7);
+            String user_nick = res.getString(8);
+            String account_expire_time = res.getString(9);
+            userDescriptor edited_user = new userDescriptor(Integer.parseInt(id),
+                                                       login,
+                                                       user_privilege,
+                                                       pin,
+                                                       user_name,
+                                                       user_surname,
+                                                       user_nick,
+                                                       account_expire_time,
+                                                       rfid);
+            editSetAttributes(EditStatus.OK, u, edited_user);
+            ueServlet.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
+        }catch(Exception e)
         {
-           editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-           ueServlet.getRequestDispatcher(config.edit_page)
-                  .forward(request, response);
-           return;
+            editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
+            ueServlet.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
         }
-
-        InputStream input = res.getBinaryStream("rfid");
-        byte[] rfid = new byte[20];
-        input.read(rfid);
-
-        String login= res.getString(2);
-        int user_privilege = res.getInt(4);
-        int pin = res.getInt(5);
-        String user_name = res.getString(6);
-        String user_surname = res.getString(7);
-        String user_nick = res.getString(8); 
-        String account_expire_time = res.getString(9);
-        userDescriptor edited_user = new userDescriptor(Integer.parseInt(id),
-                                                   login, 
-                                                   user_privilege,
-                                                   pin,
-                                                   user_name, 
-                                                   user_surname, 
-                                                   user_nick,
-                                                   account_expire_time,
-                                                   rfid);
-
-        editSetAttributes(EditStatus.OK, u, edited_user);
-        ueServlet.getRequestDispatcher(config.edit_page)
-               .forward(request, response);
     }
 
     @GET
@@ -313,17 +303,25 @@ public class userManagerServlet
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("delete from Users where id=?");
         stmt.setString(1, id);
-        
-        int rowsUpdated = stmt.executeUpdate();
-        if(rowsUpdated == 0)
+        try
+        { 
+            int rowsUpdated = stmt.executeUpdate();
+            if(rowsUpdated == 0)
+            {
+                editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
+                response.sendRedirect(config.getUserEditUrl());
+                return;
+            }
+
+            editSetAttributes(EditStatus.OK, u, new userDescriptor());
+            ueServlet.getRequestDispatcher(config.edit_page)
+                   .forward(request, response);
+        }catch(Exception e)
         {
             editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
             response.sendRedirect(config.getUserEditUrl());
             return;
         }
-
-        editSetAttributes(EditStatus.OK, u, new userDescriptor());
-        response.sendRedirect(config.getUserEditUrl());
         return;
     }
 

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <%@ page import = "rest.snakeApp.*" %>
 <%@ page import = "rest.privilege" %>
+<%@ page import = "rest.userManagerServlet" %>
 <%@ page import = "rest.userDescriptor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
@@ -9,9 +10,12 @@
   int op_status =(int)request.getAttribute("status");
   userDescriptor curr_u =(userDescriptor)request.getAttribute("current_user");
   userDescriptor edited_u =(userDescriptor)request.getAttribute("edited_user");
+  String[] privOptions = {"", ""};
+  privOptions[edited_u.getprivilege()] = "selected=\"selected\"";
   pageContext.setAttribute("edited_id",edited_u.getid());
   pageContext.setAttribute("edited_login",edited_u.getuserlogin());
-  pageContext.setAttribute("edited_priv",edited_u.getprivilege());
+  pageContext.setAttribute("priv_option_0",privOptions[0]);
+  pageContext.setAttribute("priv_option_1",privOptions[1]);
   pageContext.setAttribute("edited_pin",edited_u.getpin());
   pageContext.setAttribute("edited_name",edited_u.getname());
   pageContext.setAttribute("edited_surname",edited_u.getsurname());
@@ -174,6 +178,14 @@
   <div id ="user_content"> 
     <%
       out.println("<h3>Hi <div name=\"user_info\">" + curr_u.getname() + " " + curr_u.getsurname() + "</dir> </h3>");
+      if (op_status != userManagerServlet.EditStatus.IDLE) 
+      {
+          if ((int)op_status == userManagerServlet.EditStatus.OK) {
+              out.println("<h6 style=\"color:green\">Action performed successfuly</h6>");
+          }else{
+              out.println("<h6 style=\"color:red\">Action has failed</h6>");
+          }
+      }
     %>
   <h3>Add/Edit user form</h3>
   <form class="form-inline" action="/rest/users" method="post">
@@ -188,7 +200,10 @@
     <input type="password" id="pwd" placeholder="User password" name="password">
     
     <label for="priv">Privilege:</label>
-    <input type="text" id="priv" placeholder="User privilege" name="privilege" value="${edited_priv}">
+    <select id="priv" id="priv" placeholder="User privilege" name="privilege">
+      <option value="0" ${priv_option_0} >User</option>
+      <option value="1" ${priv_option_1} >Admin</option>
+    </select>
     
     <label for="pin">Pin:</label>
     <input type="text" id="pin" placeholder="User pin" name="pin" value="${edited_pin}">
@@ -209,8 +224,23 @@
     <input type="text" id="rfid" placeholder="User rfid" name="rfid" value="${edited_rfid}">
     
     <button type="submit">Submit</button>
+    <div id="description">
+      <h5>Adding rules</h5>
+      <p>To add user set id filed to <b>-1</b>, fill rest of fields as you wish.</p>
+      <p>Compulsory fileds are: Login, Password, Privilege, Pin, Account expire date.</p>
+
+      <h5>Updating rules</h5>
+      <p>To update user choose user from below table and use edit button belonging to him/her.</p>
+
+      <p>Compulsory fields are: Login, Privilege, Pin, account expire date. <b>Mind you</b> that you can't edit user's password.</p>
+      <h5>General rules</h5>
+      <p>Login has to be unique</p>
+      <p>Pin's length has to be at least 4 signs</p>
+      <p>Account expire data format is 	&lt;yyyy-mm-dd&gt;</p>
+      <p>RFID is encoded as hexadecimal string, so allowed signs are: [0-9A-F]. Typing anything else causes to undefined behaviour</p>
+      <p>For both situations use <b>Submit button</b> to finalize action.</p>
+    </div>
   </form>
-    <h1>Status ${status}</h1>
     <h3>Members of skn mos: </h3>
       <table>
         <tr>
@@ -232,7 +262,10 @@
           out.println("<tr>");
             out.println("<td>" + users.get(i).getid() + "</td>");
             out.println("<td>" + users.get(i).getuserlogin() + "</td>");
-            out.println("<td>" + users.get(i).getprivilege() + "</td>");
+            if( users.get(i).getprivilege() == 0)
+              out.println("<td>User account</td>");
+            else
+              out.println("<td>Admin account</td>");
             out.println("<td>" + users.get(i).getpin() + "</td>");
             out.println("<td>" + users.get(i).getname() + "</td>");
             out.println("<td>" + users.get(i).getsurname() + "</td>");

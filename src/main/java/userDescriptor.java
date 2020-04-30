@@ -82,7 +82,7 @@ public class userDescriptor
    }
    public String getrfid()
    {
-     return new String(rfid);
+     return sha256.toHexString(rfid);
    }
    public Date getcreated()
    {
