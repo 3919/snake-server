@@ -16,6 +16,7 @@ import javax.validation.*;
 import javax.validation.constraints.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.Consumes;
+import java.util.logging.*;
 
 @ApplicationScoped
 @Path("")
@@ -34,7 +35,7 @@ public class systemCore
         @NotNull
         public double value;
     };
-
+    
     @Context
     private HttpServletRequest request;
     
@@ -50,6 +51,25 @@ public class systemCore
         }catch(Exception e)
         {
             e.printStackTrace();
+        }
+    }
+
+    public void log(Level l, String msg, String[] params)
+    {
+        Logger logger = Logger.getLogger("SnakeLogger");  
+        FileHandler fh;  
+        try {  
+            fh = new FileHandler("snakelogs", true);
+            logger.addHandler(fh);
+            SimpleFormatter formatter = new SimpleFormatter();  
+            fh.setFormatter(formatter);
+
+            logger.log(l, msg, params); 
+            fh.flush();
+            fh.close();
+
+        } catch (Exception e) {  
+            e.printStackTrace();  
         }
     }
 

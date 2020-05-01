@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import javax.servlet.ServletContext;
+import java.util.logging.*;
 
 @Path(config.user_manage_url)
 public class userManagerServlet
@@ -205,6 +206,7 @@ public class userManagerServlet
                return;
             }
             
+            sc.log(Level.INFO, "User succefully added/updated. Login {0}",new String[] {login});
             editSetAttributes(EditStatus.OK, u, new userDescriptor());
             ueServlet.getRequestDispatcher(config.edit_page)
                    .forward(request, response);
@@ -312,6 +314,7 @@ public class userManagerServlet
                 response.sendRedirect(config.getUserEditUrl());
                 return;
             }
+            sc.log(Level.INFO, "User succefully removed, User if {0}",new String[] {id});
 
             editSetAttributes(EditStatus.OK, u, new userDescriptor());
             ueServlet.getRequestDispatcher(config.edit_page)

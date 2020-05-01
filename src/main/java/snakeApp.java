@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.util.logging.*;
 
 @Path(config.app_url)
 public class snakeApp{
@@ -27,7 +28,7 @@ public class snakeApp{
         public static final int PASS_CHANGE_FAILED = 1;
         public static final int PASS_IDLE = -1;
     }
-
+    
     @Context
     private HttpServletRequest request;
     
@@ -134,14 +135,15 @@ public class snakeApp{
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
         sc.unlockLaboratory();
-        
+        sc.log(Level.INFO, "User {0} unlock laboratory using page", new String[] {u.getuserlogin()} );
+
         appSetAttributes(PassStatus.PASS_IDLE, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
     }
 
     @GET
-    @Path(config.lab_lock_url) 
+    @Path(config.lab_lock_url)
     public void lock_from_page()throws Exception
     {
         HttpSession session = request.getSession(false);
@@ -152,6 +154,7 @@ public class snakeApp{
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
         sc.lockLaboratory();
+        sc.log(Level.INFO, "User [0] lock laboratory using page", new String[] {u.getuserlogin()} );
         
         appSetAttributes(PassStatus.PASS_IDLE, u);
         request.getRequestDispatcher(config.snake_page)
@@ -160,9 +163,31 @@ public class snakeApp{
 
     @POST
     @Path(config.lab_unlock_url) 
+    public Response log_active_users_by_mac(
+            @FormParam("mac") String mac_addr
+           )throws Exception
+    {
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select login from users where mac=?");
+        
+        stmt.setString(1,mac_addr);
+        ResultSet res = stmt.executeQuery();
+        if(!res.next())
+        {
+            sc.log(Level.WARNING, "Mac {0} not found",new String[] {mac_addr});
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+        String user = res.getString(1); 
+        sc.log(Level.INFO, "User {0} detected in laboratory by his MAC attached to network",new String[] {user});
+        return Response.ok("").build();
+    }
+
+    @POST
+    @Path(config.lab_unlock_url) 
     public Response ulock_from_sensors(
-            @FormParam("old_pass") int pin,
-            @FormParam("old_pass") String rfid
+            @FormParam("pin") int pin,
+            @FormParam("rfid") String rfid
            )throws Exception
     {
         Class.forName("org.mariadb.jdbc.Driver");
