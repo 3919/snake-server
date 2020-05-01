@@ -160,14 +160,14 @@ public class snakeApp{
 
     @POST
     @Path(config.lab_unlock_url) 
-    public Response  ulock_from_sensors(
+    public Response ulock_from_sensors(
             @FormParam("old_pass") int pin,
             @FormParam("old_pass") String rfid
            )throws Exception
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select rfid, OCTET_LENGTH(rfid) from users where pin=?");
+        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from users where pin=?");
         stmt.setInt(1, pin);
         ResultSet res = stmt.executeQuery();
         if(!res.next())
