@@ -197,17 +197,17 @@ public class snakeApp{
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from users where pin=?");
+        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from Users where pin=?");
         stmt.setInt(1, pin);
         ResultSet res = stmt.executeQuery();
         if(!res.next())
         {
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
         }
-
+        System.out.println("DUPA111111");
         String login= res.getString(1);
         InputStream input = res.getBinaryStream("rfid");
-        int rfid_size = res.getInt(2);
+        int rfid_size = res.getInt(3);
         byte[] rfid_raw = new byte[rfid_size];
         input.read(rfid_raw);
         String rfid_db = sha256.toHexString(rfid_raw);
@@ -215,6 +215,7 @@ public class snakeApp{
         {
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
         }
+        System.out.println("DUPA222222");
 
         sc.unlockLaboratory(login);
         return Response.ok("").build();
@@ -229,7 +230,7 @@ public class snakeApp{
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from users where pin=?");
+        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from Users where pin=?");
         stmt.setInt(1, pin);
         ResultSet res = stmt.executeQuery();
         if(!res.next())
@@ -238,7 +239,7 @@ public class snakeApp{
         }
         String login= res.getString(1);
         InputStream input = res.getBinaryStream("rfid");
-        int rfid_size = res.getInt(2);
+        int rfid_size = res.getInt(3);
         byte[] rfid_raw = new byte[rfid_size];
         input.read(rfid_raw);
         String rfid_db = sha256.toHexString(rfid_raw);
