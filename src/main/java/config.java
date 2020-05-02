@@ -13,7 +13,6 @@ public class config
     public static final String edit_url = "/{id}";
     public static final String remove_url = "/remove/{id}";
 
-    public static final String sensor_auth_url = "/sensor/auth";
     public static final String sensor_update_url = "/sensor";
  
     public static final String lab_unlock_url = "/unlock";

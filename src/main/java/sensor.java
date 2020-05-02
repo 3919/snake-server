@@ -1,7 +1,7 @@
 package rest;
-import javax.validation.*;
-import javax.validation.constraints.*;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement
 public class sensor
 {
     public final class msg_type{
@@ -9,12 +9,8 @@ public class sensor
         public static final int HUMIDITY= 1;
         public static final int TBA= -1;
     }
-
-    @NotNull
+    
     public String sensor_name;
-    @NotNull
-    @Max(2)
     public  int type; 
-    @NotNull
     public double value;
 };

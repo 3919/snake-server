@@ -4,8 +4,7 @@ import com.fazecast.jSerialComm.*;
 
 import java.util.logging.Logger;
 import java.util.Date;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.*;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Context;
 import javax.servlet.http.*;
@@ -89,10 +88,10 @@ public class systemCore
         return state;
     }
 
-    @POST
+    @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Path(config.sensor_update_url)
-    public Response handleSensor(@Valid sensor s)
+    public Response handleSensor(sensor s)
     {
         sensor f_s = state.getSensorByName(s.sensor_name);
         if(f_s == null)
@@ -100,6 +99,7 @@ public class systemCore
             state.sensors.add(s);
         }else
         {
+            f_s.type = s.type;
             f_s.value = s.value;
         }
         return Response.ok("").build();
