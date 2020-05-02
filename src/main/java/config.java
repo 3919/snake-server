@@ -13,10 +13,14 @@ public class config
     public static final String edit_url = "/{id}";
     public static final String remove_url = "/remove/{id}";
 
-    public static final String sensor_update_url = "/sensor";
+    public static final String sensor_url = "/sensor";
+    public static final String active_users_by_mac_url = "/update";
  
     public static final String lab_unlock_url = "/unlock";
     public static final String lab_lock_url = "/lock";
+    
+    public static final String lab_sensor_unlock_url = "/sensor/unlock";
+    public static final String lab_sensor_lock_url = "/sensor/lock";
     
     public static final String download_logs_url= "/logs/download";
     

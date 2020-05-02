@@ -183,11 +183,19 @@
         {
           out.println("<tr>");
             out.println("<td>" + sensors.get(i).sensor_name + "</td>");
-            if(sensors.get(i).type == 0)
-              out.println("<td> TEMPERATURE</td>");
-            else
-              out.println("<td> HUMIDITY </td>");
+            switch(sensors.get(i).type)
+            {
+              case 0:
+                out.println("<td> TEMPERATURE</td>");
+                break;
+              case 1:
+                out.println("<td> HUMIDITY </td>");
+                break;
+              case 2:
+                out.println("<td>OPEN WINDOW SENSOR</td>");
+                break;
 
+            };
             out.println("<td>" + sensors.get(i).value+ "</td>");
           out.println("</tr>");
         }
