@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import java.text.ParseException;
 import java.util.logging.*;
 
@@ -58,8 +59,7 @@ public class snakeApp{
         laboratoryState l = sc.getLabState();
         request.setAttribute("u_info",       u);
         request.setAttribute("active_users", l.loggedUsers);
-        request.setAttribute("temp_in",      l.temperature);
-        request.setAttribute("humidity_out", l.humidity);
+        request.setAttribute("active_sensors", l.sensors);
         request.setAttribute("response_msg", pass_status);
     }
 
@@ -122,6 +122,17 @@ public class snakeApp{
                .forward(request, response);
         return;
     }
+    @GET
+    @Path(config.download_logs_url)
+    @Produces("text/plain")
+    public Response getTextFile() {
+ 
+        File file = new File(config.log_name);
+ 
+        ResponseBuilder response = Response.ok((Object) file);
+        response.header("Content-Disposition", "attachment; filename=\""+ config.log_name +"\"");
+        return response.build();
+    }
 
     @GET
     @Path(config.lab_unlock_url)
@@ -137,9 +148,7 @@ public class snakeApp{
         sc.unlockLaboratory();
         sc.log(Level.INFO, "User {0} unlock laboratory using page", new String[] {u.getuserlogin()} );
 
-        appSetAttributes(PassStatus.PASS_IDLE, u);
-        request.getRequestDispatcher(config.snake_page)
-               .forward(request, response);
+        response.sendRedirect(config.getAppUrl());
     }
 
     @GET
@@ -154,11 +163,9 @@ public class snakeApp{
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
         sc.lockLaboratory();
-        sc.log(Level.INFO, "User [0] lock laboratory using page", new String[] {u.getuserlogin()} );
+        sc.log(Level.INFO, "User {0} lock laboratory using page", new String[] {u.getuserlogin()} );
         
-        appSetAttributes(PassStatus.PASS_IDLE, u);
-        request.getRequestDispatcher(config.snake_page)
-               .forward(request, response);
+        response.sendRedirect(config.getAppUrl());
     }
 
     @POST
@@ -169,7 +176,7 @@ public class snakeApp{
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select login from users where mac=?");
+        PreparedStatement stmt = conn.prepareStatement("select login from mac where mac=?");
         
         stmt.setString(1,mac_addr);
         ResultSet res = stmt.executeQuery();

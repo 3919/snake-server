@@ -2,12 +2,15 @@
 <%@ page import = "rest.snakeApp.*" %>
 <%@ page import = "rest.privilege" %>
 <%@ page import = "rest.userDescriptor" %>
+<%@ page import = "rest.sensor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
 <%
   userDescriptor u =(userDescriptor)request.getAttribute("u_info");  
   ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("active_users");
-  SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
+  ArrayList<sensor> sensors= (ArrayList<sensor>)request.getAttribute("active_sensors");
+  SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+  response.setIntHeader("Refresh", 5);
 %>
 <html>
 <head>
@@ -119,14 +122,28 @@
       background-color: #dddddd;
     }
 
+    #lab:link, #lab:visited {
+      background-color: #f44336;
+      color: white;
+      padding: 14px 25px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    #lab:hover, #lab:active {
+      background-color: red;
+    }
+
 </style>
 </head>
 <body>
 
 <div class="navbar">
-  <a href="app/logout">Logout</a>
+  <a href="/rest/app/logout">Logout</a>
   <% if (u.getprivilege() == privilege.ADMIN) { %>
-    <a href="users">Edit users</a>
+    <a href="/rest/users">Edit users</a>
+    <a href="/rest/mac">Edit macs</a>
   <% }%>
 </div>
 <div id ="wrapper">
@@ -134,9 +151,6 @@
     <%
       out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
     %>
-    <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir> </h3>
-    <h3>Current humidity inside laboratory:<div name="humidity_out">${humidity_out}</dir> </h3>
-    <h3>Is laboratory open:<div name="humidity_out">${humidity_out}</dir> </h3>
     <h3>Logged users: </h3>
       <table>
       <tr>
@@ -157,6 +171,28 @@
         }
       %>
       </table>
+    <h3>Sensors: </h3>
+      <table>
+      <tr>
+      <td>Name</td> 
+      <td>Type</td> 
+      <td>Value</td> 
+      </tr>
+      <%
+        for(int i =0; i < sensors.size(); i++)
+        {
+          out.println("<tr>");
+            out.println("<td>" + sensors.get(i).sensor_name + "</td>");
+            if(sensors.get(i).type == 0)
+              out.println("<td> TEMPERATURE</td>");
+            else
+              out.println("<td> HUMIDITY </td>");
+
+            out.println("<td>" + sensors.get(i).value+ "</td>");
+          out.println("</tr>");
+        }
+      %>
+      </table>
   </div>
   
   <div id="form_user_pass">
@@ -171,6 +207,7 @@
             }
         }
       %>
+   
     <form action="app" method="Post">
       <label for="old_pass">Old password:</label><br>
       <input type="password" id="old_pass" name="old_pass" ><br>
@@ -180,6 +217,12 @@
       <input type="password" id="new_pass_repeated" name="new_pass_repeated" ><br>
       <input type="submit" value="Submit">
     </form>
+
+      </br>
+      <a id="lab" href="/rest/app/unlock"> Open lab</a>
+      <a id="lab" href="/rest/app/lock"> Close lab</a>
+      <a id="lab" href="/rest/app/logs/download"> Download logs</a>
+
     </center>
   </div>
 </div>
