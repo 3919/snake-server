@@ -49,6 +49,7 @@ public class snakeApp{
             return;
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        sc.drawCleaners();
         appSetAttributes(PassStatus.PASS_IDLE, u);
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
@@ -61,6 +62,7 @@ public class snakeApp{
         request.setAttribute("active_users", l.loggedUsers);
         request.setAttribute("active_sensors", l.sensors);
         request.setAttribute("response_msg", pass_status);
+        request.setAttribute("cleaning_info", sc.getCleaners());
     }
 
     @POST
@@ -204,7 +206,6 @@ public class snakeApp{
         {
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
         }
-        System.out.println("DUPA111111");
         String login= res.getString(1);
         InputStream input = res.getBinaryStream("rfid");
         int rfid_size = res.getInt(3);
@@ -215,7 +216,6 @@ public class snakeApp{
         {
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
         }
-        System.out.println("DUPA222222");
 
         sc.unlockLaboratory(login);
         return Response.ok("").build();

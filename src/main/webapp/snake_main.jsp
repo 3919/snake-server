@@ -2,6 +2,7 @@
 <%@ page import = "rest.snakeApp.*" %>
 <%@ page import = "rest.privilege" %>
 <%@ page import = "rest.userDescriptor" %>
+<%@ page import = "rest.systemCore.cleanersDescriptor" %>
 <%@ page import = "rest.sensor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
@@ -9,7 +10,10 @@
   userDescriptor u =(userDescriptor)request.getAttribute("u_info");  
   ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("active_users");
   ArrayList<sensor> sensors= (ArrayList<sensor>)request.getAttribute("active_sensors");
+  cleanersDescriptor cleaners= (cleanersDescriptor)request.getAttribute("cleaning_info");
+
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
   response.setIntHeader("Refresh", 5);
 %>
 <html>
@@ -151,6 +155,27 @@
     <%
       out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
     %>
+    
+    <h3>Users responsible for cleaning this week:</h3>
+    <table>
+    <tr>
+    <td>Login</td> 
+    <td>Name</td> 
+    <td>Surname</td> 
+    </tr>
+    <%
+      for(int i =0; i < cleaners.staff.length; i++)
+      {
+        out.println("<tr>");
+          out.println("<td>" + cleaners.staff[i].getuserlogin()+ "</td>");
+          out.println("<td>" + cleaners.staff[i].getname() + "</td>");
+          out.println("<td>" + cleaners.staff[i].getsurname() + "</td>");
+        out.println("</tr>");
+      }
+      out.println("<h5> Next cleaners draw will be avaliable after" + formatter.format(cleaners.nextDrawDate) + "</h5>");
+    %>
+    </table>
+    </br>
     <h3>Logged users: </h3>
       <table>
       <tr>
