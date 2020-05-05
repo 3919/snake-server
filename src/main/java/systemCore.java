@@ -157,6 +157,13 @@ public class systemCore
         }
         return Response.ok("").build();
     }
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path(config.ajax_sensors_path)
+    public ArrayList<sensor> getSensors()
+    {
+        return state.sensors;
+    }
 
     userDescriptor findUser(int id)
     {

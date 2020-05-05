@@ -13,8 +13,6 @@
   cleanersDescriptor cleaners= (cleanersDescriptor)request.getAttribute("cleaning_info");
 
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-
-  response.setIntHeader("Refresh", 5);
 %>
 <html>
 <head>
@@ -141,7 +139,7 @@
 
 </style>
 </head>
-<body>
+<body onload="setup_page_refresh()">
 
 <div class="navbar">
   <a href="/rest/app/logout">Logout</a>
@@ -197,7 +195,7 @@
       %>
       </table>
     <h3>Sensors: </h3>
-      <table>
+      <table id ="sensors">
       <tr>
       <td>Name</td> 
       <td>Type</td> 
@@ -219,7 +217,6 @@
               case 2:
                 out.println("<td>OPEN WINDOW SENSOR</td>");
                 break;
-
             };
             out.println("<td>" + sensors.get(i).value+ "</td>");
           out.println("</tr>");
@@ -259,5 +256,68 @@
     </center>
   </div>
 </div>
+<script>
+
+function createTable(sensors)
+{
+  var table = document.createElement("TABLE");
+  table.setAttribute("id", "sensors");
+
+  var t_val = ["Name", "Type", "Value"];
+  createRow(table, t_val);
+
+  for(var i = 0; i < sensors.length; i++){
+      var sensor= sensors[i];
+      t_val = [];
+      for (var key in sensor){
+          t_val[t_val.length] = sensor[key];
+      }
+    createRow(table, t_val);
+  }
+  var table_old = document.getElementById("sensors");
+  table_old.parentNode.replaceChild(table, table_old);
+}
+
+function createRow(table, t_params) {
+  var i;
+  var row = document.createElement("TR");
+  for (i = 0; i <t_params.length; i++) {
+    var cell= document.createElement("TD");
+    var c_text = document.createTextNode(t_params[i]);
+    if(i == 1)
+    {
+      var sensor_type = t_params[i];
+      if(sensor_type == "0")
+        c_text.nodeValue = "TEMPERATURE";
+      else if(sensor_type == "1")
+        c_text.nodeValue = "HUMIDITY";
+      else if(sensor_type == "2")
+        c_text.nodeValue = "OPEN WINDOW SENSOR";
+    }
+    cell.appendChild(c_text);
+    row.appendChild(cell);
+  }
+  table.appendChild(row);
+}
+
+
+  function loadSensors() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        measurements = this.responseText;
+        const arr= JSON.parse(measurements);
+        createTable(arr);
+      }
+    };
+    xhttp.open("GET", "/rest/sensors/measurements", true);
+    xhttp.send();
+  }
+
+  function setup_page_refresh() {
+    setInterval(function(){ loadSensors(); }, 3000);
+  }
+
+</script>
 </body>
 </html>
