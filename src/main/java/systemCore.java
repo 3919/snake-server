@@ -18,6 +18,8 @@ import javax.ws.rs.Consumes;
 import java.util.logging.*;
 import java.util.Random;
 import java.util.ArrayList;
+import com.slack.api.Slack;
+import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 
 @ApplicationScoped
 @Path("")
@@ -43,6 +45,8 @@ public class systemCore
     private Connection conn;
 
     private cleanersDescriptor cleaners= new cleanersDescriptor();
+    private Slack slack;
+    private String token;
 
     public systemCore()
     {
@@ -53,6 +57,9 @@ public class systemCore
             logger.addHandler(fh);
             SimpleFormatter formatter = new SimpleFormatter();  
             fh.setFormatter(formatter);
+            slack = Slack.getInstance();
+            token = System.getenv("SLACK_TOKEN_BOT");
+
         }catch(Exception e)
         {
             e.printStackTrace();
@@ -84,7 +91,6 @@ public class systemCore
            u2 = rand.nextInt(users.size());
         }while(!cleaners.userValid(u2));
 
-        System.out.println(u1 + " DUPA " + u2);
         cleaners.staff[1] = users.get(u2);
         cleaners.lastDraw[1] = u2;
         cleaners.nextDrawDate.setTime(current_time.getTime() + 7*24*3600*1000);
@@ -110,6 +116,15 @@ public class systemCore
         //byte[] open_msg = {0x2,0x1};
         //locker.writeBytes(open_msg, 2);
         //locker.closePort();
+        try{
+            ChatPostMessageResponse response = slack.methods(token).chatPostMessage(req -> req
+                                          .channel("lab_info") // Channel ID
+                                          .text(":unlock: User " + login + " unlocked laboratory"));
+        }catch(Exception e)
+        {
+            log(Level.INFO, "Slack can't send info to channel",new String[] {});
+        }
+
         log(Level.INFO, "Laboratory unlcked by {0}",new String[] {login});
         state.labOpen=true;
     }
@@ -124,13 +139,24 @@ public class systemCore
         //byte[] open_msg = {0x2,0x2};
         //locker.writeBytes(open_msg, 2);
         //locker.closePort();
-        for(sensor s : state.sensors)
-        {
-            if(s.type == sensor.OPEN_WINDOW_DETECTOR && s.value == 1.0) // if window open
+        try{
+            for(sensor s : state.sensors)
             {
-                this.log(Level.SEVERE, "Laboratory locked. However window left opened", null);
-                break;
+                if(s.type == sensor.OPEN_WINDOW_DETECTOR && s.value == 1.0) // if window open
+                {
+                    ChatPostMessageResponse response = slack.methods(token).chatPostMessage(req -> req
+                                                  .channel("lab_info") // Channel ID
+                                                  .text(":bomb: User @" + login + " locked laboratory. However window left opened"));
+                    this.log(Level.SEVERE, "Laboratory locked. However window left opened", null);
+                    break;
+                }
             }
+            ChatPostMessageResponse response = slack.methods(token).chatPostMessage(req -> req
+                                          .channel("lab_info") // Channel ID
+                                          .text(":lock: Laboratory locked by " + login));
+        }catch(Exception e)
+        {
+            log(Level.INFO, "Slack can't send info to channel",new String[] {});
         }
         this.log(Level.INFO, "Laboratory locked by {0}",new String[]{login});
         state.labOpen=false;

@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import java.text.ParseException;
 import java.util.logging.*;
+import com.slack.api.Slack;
+import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 
 @Path(config.app_url)
 public class snakeApp{
