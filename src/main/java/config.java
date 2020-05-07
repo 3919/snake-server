@@ -23,7 +23,7 @@ public class config
     public static final String lab_sensor_lock_url = "/sensor/lock";
     
     public static final String download_logs_url= "/logs/download";
-    
+    public static final String ajax_sensors_path= "/sensors/measurements"; 
     // web resources
     public static final String login_page = "/login.html";
     public static final String snake_page = "/snake_main.jsp";

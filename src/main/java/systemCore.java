@@ -16,13 +16,24 @@ import javax.validation.constraints.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.Consumes;
 import java.util.logging.*;
+import java.util.Random;
+import java.util.ArrayList;
 
 @ApplicationScoped
 @Path("")
 public class systemCore
 {
+    public class cleanersDescriptor
+    {
+        public userDescriptor[] staff = {new userDescriptor(), new userDescriptor()};
+        public int [] lastDraw = {-1, -1};
+        public Date nextDrawDate = new Date();
+        boolean userValid(int id)
+        {
+            return id != lastDraw[0] && id != lastDraw[1]; 
+        }
+    };
 
-    
     private final static Logger logger= Logger.getLogger("SnakeLogger");  
     private static FileHandler fh;  
     @Context
@@ -30,7 +41,9 @@ public class systemCore
     
     private laboratoryState state = new laboratoryState();
     private Connection conn;
-    
+
+    private cleanersDescriptor cleaners= new cleanersDescriptor();
+
     public systemCore()
     {
         try{
@@ -45,10 +58,41 @@ public class systemCore
             e.printStackTrace();
         }
     }
+    public cleanersDescriptor getCleaners()
+    {
+        return cleaners;
+    }
+
+    public void drawCleaners() throws Exception
+    {
+        Date current_time = new Date();
+        ArrayList<userDescriptor> users = userManagerServlet.getAllUsers();
+        if(current_time.compareTo(cleaners.nextDrawDate) < 0 || users.size() == 0)
+        {
+            return;
+        }
+        
+        Random rand = new Random();
+        int u1, u2;
+        do{
+           u1 = rand.nextInt(users.size());
+        }while(!cleaners.userValid(u1));
+        cleaners.staff[0] = users.get(u1);
+        cleaners.lastDraw[0] = u1;
+        
+        do{
+           u2 = rand.nextInt(users.size());
+        }while(!cleaners.userValid(u2));
+
+        System.out.println(u1 + " DUPA " + u2);
+        cleaners.staff[1] = users.get(u2);
+        cleaners.lastDraw[1] = u2;
+        cleaners.nextDrawDate.setTime(current_time.getTime() + 7*24*3600*1000);
+    }
 
     public void log(Level l, String msg, String[] params)
     {
-        try {  
+        try {
             logger.log(l, msg, params); 
             fh.flush();
         } catch (Exception e) {  
@@ -112,6 +156,26 @@ public class systemCore
             f_s.value = s.value;
         }
         return Response.ok("").build();
+    }
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path(config.ajax_sensors_path)
+    public ArrayList<sensor> getSensors()
+    {
+        return state.sensors;
+    }
+
+    userDescriptor findUser(int id)
+    {
+        for(int i =0; i < state.loggedUsers.size(); i++)
+        {
+            userDescriptor u_tmp = state.loggedUsers.get(i);
+            if(u_tmp.getid() == id)
+            {
+                return u_tmp;
+            }
+        }
+        return null;
     }
     
     userDescriptor findUser(userDescriptor u)

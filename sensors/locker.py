@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 import requests
-import time
-import random
 
 url_lock = 'http://localhost:8080/rest/app/sensor/lock'
 url_unlock = 'http://localhost:8080/rest/app/sensor/unlock'

@@ -2,6 +2,7 @@
 <%@ page import = "rest.snakeApp.*" %>
 <%@ page import = "rest.privilege" %>
 <%@ page import = "rest.userDescriptor" %>
+<%@ page import = "rest.systemCore.cleanersDescriptor" %>
 <%@ page import = "rest.sensor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
@@ -9,8 +10,9 @@
   userDescriptor u =(userDescriptor)request.getAttribute("u_info");  
   ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("active_users");
   ArrayList<sensor> sensors= (ArrayList<sensor>)request.getAttribute("active_sensors");
+  cleanersDescriptor cleaners= (cleanersDescriptor)request.getAttribute("cleaning_info");
+
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-  response.setIntHeader("Refresh", 5);
 %>
 <html>
 <head>
@@ -137,7 +139,7 @@
 
 </style>
 </head>
-<body>
+<body onload="setup_page_refresh()">
 
 <div class="navbar">
   <a href="/rest/app/logout">Logout</a>
@@ -151,6 +153,27 @@
     <%
       out.println("<h3>Hi <div name=\"user_info\">" + u.getname() + " " + u.getsurname() + "</dir> </h3>");
     %>
+    
+    <h3>Users responsible for cleaning this week:</h3>
+    <table>
+    <tr>
+    <td>Login</td> 
+    <td>Name</td> 
+    <td>Surname</td> 
+    </tr>
+    <%
+      for(int i =0; i < cleaners.staff.length; i++)
+      {
+        out.println("<tr>");
+          out.println("<td>" + cleaners.staff[i].getuserlogin()+ "</td>");
+          out.println("<td>" + cleaners.staff[i].getname() + "</td>");
+          out.println("<td>" + cleaners.staff[i].getsurname() + "</td>");
+        out.println("</tr>");
+      }
+      out.println("<h5> Next cleaners draw will be avaliable after" + formatter.format(cleaners.nextDrawDate) + "</h5>");
+    %>
+    </table>
+    </br>
     <h3>Logged users: </h3>
       <table>
       <tr>
@@ -172,7 +195,7 @@
       %>
       </table>
     <h3>Sensors: </h3>
-      <table>
+      <table id ="sensors">
       <tr>
       <td>Name</td> 
       <td>Type</td> 
@@ -194,7 +217,6 @@
               case 2:
                 out.println("<td>OPEN WINDOW SENSOR</td>");
                 break;
-
             };
             out.println("<td>" + sensors.get(i).value+ "</td>");
           out.println("</tr>");
@@ -234,36 +256,67 @@
     </center>
   </div>
 </div>
-<div id ="wrapper">
-  <div id ="user_content"> 
-    <h3>Current temperature inside laboratory:<div name="temp_in">${temp_in}</dir> </h3>
-    <h3>Current humidity inside laboratory:<div name="humidity_out">${humidity_out}</dir> </h3>
-    <h3>Logged users: </h3>
-  </div>
-  
-  <div id="form_user_pass">
-    <center>
-      <%
-        if ((int)request.getAttribute("response_msg") != PassStatus.PASS_IDLE) 
-        {
-            if ((int)request.getAttribute("response_msg") == PassStatus.PASS_CHANGE_OK) {
-                out.println("<h6 style=\"color:green\">Your password has been changed </h6>");
-            }else{
-                out.println("<h6 style=\"color:red\">Your password hasn't been changed </h6>");
-            }
-          }
-      %>
-    <form action="app" method="Post">
-      <label for="old_pass">Old password:</label><br>
-      <input type="password" id="old_pass" name="old_pass" ><br>
-      <label for="new_pass">New password:</label><br>
-      <input type="password" id="new_pass" name="new_pass" ><br>
-      <label for="new_pass_repeated">Repeat new password:</label><br>
-      <input type="password" id="new_pass_repeated" name="new_pass_repeated" ><br>
-      <input type="submit" value="Submit">
-    </form>
-    </center>
-  </div>
-</div>
+<script>
+function createTable(sensors)
+{
+  var table = document.createElement("TABLE");
+  table.setAttribute("id", "sensors");
+
+  var t_val = ["Name", "Type", "Value"];
+  createRow(table, t_val);
+
+  for(var i = 0; i < sensors.length; i++){
+      var sensor= sensors[i];
+      t_val = [];
+      for (var key in sensor){
+          t_val[t_val.length] = sensor[key];
+      }
+    createRow(table, t_val);
+  }
+  var table_old = document.getElementById("sensors");
+  table_old.parentNode.replaceChild(table, table_old);
+}
+
+function createRow(table, t_params) {
+  var i;
+  var row = document.createElement("TR");
+  for (i = 0; i <t_params.length; i++) {
+    var cell= document.createElement("TD");
+    var c_text = document.createTextNode(t_params[i]);
+    if(i == 1)
+    {
+      var sensor_type = t_params[i];
+      if(sensor_type == "0")
+        c_text.nodeValue = "TEMPERATURE";
+      else if(sensor_type == "1")
+        c_text.nodeValue = "HUMIDITY";
+      else if(sensor_type == "2")
+        c_text.nodeValue = "OPEN WINDOW SENSOR";
+    }
+    cell.appendChild(c_text);
+    row.appendChild(cell);
+  }
+  table.appendChild(row);
+}
+
+
+  function loadSensors() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        measurements = this.responseText;
+        const arr= JSON.parse(measurements);
+        createTable(arr);
+      }
+    };
+    xhttp.open("GET", "/rest/sensors/measurements", true);
+    xhttp.send();
+  }
+
+  function setup_page_refresh() {
+    setInterval(function(){ loadSensors(); }, 3000);
+  }
+
+</script>
 </body>
 </html>

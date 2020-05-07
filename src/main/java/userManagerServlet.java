@@ -47,7 +47,7 @@ public class userManagerServlet
         request.setAttribute("users",        getAllUsers());
     }
 
-    ArrayList<userDescriptor> getAllUsers() throws Exception
+    public static ArrayList<userDescriptor> getAllUsers() throws Exception
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
@@ -61,7 +61,6 @@ public class userManagerServlet
             byte[] rfid = new byte[rfid_size];
             input.read(rfid);
 
-            HttpSession session = request.getSession(true);
             int id = res.getInt(1);
             String login= res.getString(2);
             int user_privilege = res.getInt(4);
@@ -321,7 +320,6 @@ public class userManagerServlet
                    .forward(request, response);
         }catch(Exception e)
         {
-            editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
             response.sendRedirect(config.getUserEditUrl());
             return;
         }
