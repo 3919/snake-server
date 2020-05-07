@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.inject.Inject;
 import java.util.Date;
+import java.util.logging.*;
 
 @Path("")
 public class authentication{
@@ -76,6 +77,7 @@ public class authentication{
                 String account_expire_time = res.getString(9);
                 if(!isAccountValid(account_expire_time))
                 {
+                    sc.log(Level.WARNING, "User {0} try to log, hovewer account expired",new String[] {login});
                     return Response.status(Response.Status.FORBIDDEN).entity("Your account expired. Please contact the head of skn mos").build();
                 }
 
@@ -101,18 +103,17 @@ public class authentication{
                                                       rfid);
                 session.setAttribute("user_info", u);
                 sc.addUser(u);
+                sc.log(Level.INFO, "User: {0}, authorized",new String[] {login});
                 URI uri = new URI(config.app_url);
                 return Response.seeOther(uri).build();
             }
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
+
+        sc.log(Level.WARNING, "Unauthorized logging action detected. Login: {0}",new String[] {login});
         return Response.status(Response.Status.FORBIDDEN).entity("You are not a member of skn mos").build();
 	}
 

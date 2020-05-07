@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import javax.servlet.ServletContext;
+import java.util.logging.*;
 
 @Path(config.user_manage_url)
 public class userManagerServlet
@@ -100,7 +101,7 @@ public class userManagerServlet
             return;
         }
         editSetAttributes(EditStatus.IDLE, u, new userDescriptor());
-        request.getRequestDispatcher(config.edit_page)
+        request.getRequestDispatcher(config.edit_user_page)
                .forward(request, response);
     }
 
@@ -138,7 +139,7 @@ public class userManagerServlet
         if(login.length() == 0 || priv< 0 ||  priv >2 || pin < 1000)
         {
             editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_page)
+            ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
             return;
         }
@@ -149,7 +150,7 @@ public class userManagerServlet
             Date date = formatter.parse(expire);
         } catch (ParseException e) {
             editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_page)
+            ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
            return;
         }
@@ -164,7 +165,7 @@ public class userManagerServlet
             if(password.length() == 0)
             {
                 editSetAttributes(EditStatus.FAILED,u,  new userDescriptor());
-                ueServlet.getRequestDispatcher(config.edit_page)
+                ueServlet.getRequestDispatcher(config.edit_user_page)
                        .forward(request, response);
                     return;
             }
@@ -200,18 +201,19 @@ public class userManagerServlet
             if(rowsUpdated == 0)
             {
                 editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-                ueServlet.getRequestDispatcher(config.edit_page)
+                ueServlet.getRequestDispatcher(config.edit_user_page)
                        .forward(request, response);
                return;
             }
             
+            sc.log(Level.INFO, "User succefully added/updated. Login {0}",new String[] {login});
             editSetAttributes(EditStatus.OK, u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_page)
+            ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
         }catch(Exception e)
         {
             editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_page)
+            ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
         }
     }
@@ -219,7 +221,7 @@ public class userManagerServlet
     //this method returns requested user
     //to fill form on the page
     @GET
-    @Path(config.user_edit_url)
+    @Path(config.edit_url)
     public void editUser(@PathParam("id") String id)throws Exception
     {
         HttpSession session = request.getSession(false);
@@ -245,7 +247,7 @@ public class userManagerServlet
             if(!res.next())
             {
                editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-               ueServlet.getRequestDispatcher(config.edit_page)
+               ueServlet.getRequestDispatcher(config.edit_user_page)
                       .forward(request, response);
                return;
             }
@@ -272,18 +274,18 @@ public class userManagerServlet
                                                        account_expire_time,
                                                        rfid);
             editSetAttributes(EditStatus.OK, u, edited_user);
-            ueServlet.getRequestDispatcher(config.edit_page)
+            ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
         }catch(Exception e)
         {
             editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_page)
+            ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
         }
     }
 
     @GET
-    @Path(config.user_remove_url)
+    @Path(config.remove_url)
     public void removeUser(@PathParam("id") String id)throws Exception
     {
         HttpSession session = request.getSession(false);
@@ -312,9 +314,10 @@ public class userManagerServlet
                 response.sendRedirect(config.getUserEditUrl());
                 return;
             }
+            sc.log(Level.INFO, "User succefully removed, User if {0}",new String[] {id});
 
             editSetAttributes(EditStatus.OK, u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_page)
+            ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
         }catch(Exception e)
         {

@@ -1,5 +1,6 @@
 package rest;
 import java.sql.*;
+import com.fazecast.jSerialComm.*;
 
 import java.util.logging.Logger;
 import java.util.Date;
@@ -15,25 +16,16 @@ import javax.validation.*;
 import javax.validation.constraints.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.Consumes;
+import java.util.logging.*;
 
 @ApplicationScoped
 @Path("")
 public class systemCore
 {
-    static class sensor_msg
-    {
-        public static enum msg_type 
-        {
-            TEMPERATURE,
-            HUMIDITY
-        };
-        @NotNull
-        @Max(2)
-        public msg_type type; 
-        @NotNull
-        public double value;
-    };
 
+    
+    private final static Logger logger= Logger.getLogger("SnakeLogger");  
+    private static FileHandler fh;  
     @Context
     private HttpServletRequest request;
     
@@ -45,57 +37,71 @@ public class systemCore
         try{
             Class.forName("org.mariadb.jdbc.Driver");
             conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-    
+            fh = new FileHandler(config.log_name , true);
+            logger.addHandler(fh);
+            SimpleFormatter formatter = new SimpleFormatter();  
+            fh.setFormatter(formatter);
         }catch(Exception e)
         {
             e.printStackTrace();
         }
     }
+
+    public void log(Level l, String msg, String[] params)
+    {
+        try {  
+            logger.log(l, msg, params); 
+            fh.flush();
+        } catch (Exception e) {  
+            e.printStackTrace();  
+        }
+    }
+
+    public void unlockLaboratory()
+    {
+        SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
+        boolean openedSuccessfully =locker.openPort(0);
+		if (!openedSuccessfully)
+			return;
+        locker.setBaudRate(115200);
+        byte[] open_msg = {0x2,0x1};
+        locker.writeBytes(open_msg, 2);
+        locker.closePort();
+        
+        state.labOpen=true;
+    }
+
+    public void lockLaboratory()
+    {
+        SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
+        boolean openedSuccessfully =locker.openPort(0);
+		if (!openedSuccessfully)
+			return;
+        locker.setBaudRate(115200);
+        byte[] open_msg = {0x2,0x2};
+        locker.writeBytes(open_msg, 2);
+        locker.closePort();
+        state.labOpen=false;
+    }
+
     public laboratoryState getLabState()
     {
         return state;
     }
 
     @POST
-    @Path(config.sensor_auth_url)
-    public Response authenticate (
-		@FormParam("dev_name") String device,
-		@FormParam("password") String password)throws Exception
-    {
-        PreparedStatement stmt = conn.prepareStatement("select * from Devices where device_name=? and pass_hash=?");
-        String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
-        stmt.setString(1, device);
-        stmt.setString(2, pass_hash);
-        //execute query
-        ResultSet res = stmt.executeQuery();
-        if(!res.next())
-        {
-           return Response.status(Response.Status.FORBIDDEN).entity("").build();
-        }
-
-        HttpSession session = request.getSession(true);
-        session.setMaxInactiveInterval(0); // never timeout
-        int dev_privilege = res.getInt(4);
-
-        session.setAttribute("dev_info",new devDescriptor(device, dev_privilege));
-        return Response.ok("").build();
-    }
-
-    @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Path(config.sensor_update_url)
-    public Response handleSensor(@Valid sensor_msg msg)
+    public Response handleSensor(@Valid sensor s)
     {
-        switch(msg.type)
+        sensor f_s = state.getSensorByName(s.sensor_name);
+        if(f_s == null)
         {
-            case TEMPERATURE:
-               state.temperature = msg.value; 
-            break;
-
-            case HUMIDITY:
-               state.humidity = msg.value; 
-            break;
-        };
+            state.sensors.add(s);
+        }else
+        {
+            f_s.value = s.value;
+        }
         return Response.ok("").build();
     }
     

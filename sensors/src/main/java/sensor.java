@@ -48,7 +48,7 @@ public class sensor{
             return;
         }
 
-        status =humidity.authenticate();
+        status = humidity.authenticate();
         if(status == false)
         {
             System.out.print("authentication failed");
@@ -92,7 +92,7 @@ public class sensor{
         int status =resp.getStatus();
         client.close();
 
-        return status >= 200 && status <300;
+        return status == 200;
     }
 
     private void updateSensor(sensor_msg msg) 

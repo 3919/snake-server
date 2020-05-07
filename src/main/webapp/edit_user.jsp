@@ -188,42 +188,45 @@
       }
     %>
   <h3>Add/Edit user form</h3>
-  <form class="form-inline" action="/rest/users" method="post">
-    
-    <label for="userid">Id:</label>
-    <input type="text" id="userid" placeholder="User id" name="userid" value="${edited_id}">
-    
-    <label for="login">Login:</label>
-    <input type="text" id="login" placeholder="User login" name="login" value="${edited_login}">
+  <div id="user_form">
+    <form class="form-inline" action="/rest/users" method="post">
+      
+      <label for="userid">Id:</label>
+      <input type="text" id="userid" placeholder="User id" name="userid" value="${edited_id}">
+      
+      <label for="login">Login:</label>
+      <input type="text" id="login" placeholder="User login" name="login" value="${edited_login}">
 
-    <label for="pwd">Password:</label>
-    <input type="password" id="pwd" placeholder="User password" name="password">
-    
-    <label for="priv">Privilege:</label>
-    <select id="priv" id="priv" placeholder="User privilege" name="privilege">
-      <option value="0" ${priv_option_0} >User</option>
-      <option value="1" ${priv_option_1} >Admin</option>
-    </select>
-    
-    <label for="pin">Pin:</label>
-    <input type="text" id="pin" placeholder="User pin" name="pin" value="${edited_pin}">
-    
-    <label for="name">Name:</label>
-    <input type="text" id="name" placeholder="User name" name="name" value="${edited_name}">
-    
-    <label for="surname">Surname:</label>
-    <input type="text" id="surname" placeholder="User surname" name="surname" value="${edited_surname}">
-    
-    <label for="nick">Nick:</label>
-    <input type="text" id="nick" placeholder="User nick" name="nick" value="${edited_nick}">
-    
-    <label for="expire">Account expire date:</label>
-    <input type="text" id="expire" placeholder="Expire date" name="expire" value="${edited_expire}">
-    
-    <label for="rfid">Rfid:</label>
-    <input type="text" id="rfid" placeholder="User rfid" name="rfid" value="${edited_rfid}">
-    
-    <button type="submit">Submit</button>
+      <label for="pwd">Password:</label>
+      <input type="password" id="pwd" placeholder="User password" name="password">
+      
+      <label for="priv">Privilege:</label>
+      <select id="priv" id="priv" placeholder="User privilege" name="privilege">
+        <option value="0" ${priv_option_0} >User</option>
+        <option value="1" ${priv_option_1} >Admin</option>
+      </select>
+      
+      <label for="pin">Pin:</label>
+      <input type="text" id="pin" placeholder="User pin" name="pin" value="${edited_pin}">
+      
+      <label for="name">Name:</label>
+      <input type="text" id="name" placeholder="User name" name="name" value="${edited_name}">
+      
+      <label for="surname">Surname:</label>
+      <input type="text" id="surname" placeholder="User surname" name="surname" value="${edited_surname}">
+      
+      <label for="nick">Nick:</label>
+      <input type="text" id="nick" placeholder="User nick" name="nick" value="${edited_nick}">
+      
+      <label for="expire">Account expire date:</label>
+      <input type="text" id="expire" placeholder="Expire date" name="expire" value="${edited_expire}">
+      
+      <label for="rfid">Rfid:</label>
+      <input type="text" id="rfid" placeholder="User rfid" name="rfid" value="${edited_rfid}">
+      
+      <button type="submit">Submit</button>
+    </form>
+  </div>
     <div id="description">
       <h5>Adding rules</h5>
       <p>To add user set id filed to <b>-1</b>, fill rest of fields as you wish.</p>
@@ -234,13 +237,13 @@
 
       <p>Compulsory fields are: Login, Privilege, Pin, account expire date. <b>Mind you</b> that you can't edit user's password.</p>
       <h5>General rules</h5>
-      <p>Login has to be unique</p>
+      <p>Login and pin fileds have to be unique</p>
       <p>Pin's length has to be at least 4 signs</p>
       <p>Account expire data format is 	&lt;yyyy-mm-dd&gt;</p>
       <p>RFID is encoded as hexadecimal string, so allowed signs are: [0-9A-F]. Typing anything else causes to undefined behaviour</p>
       <p>For both situations use <b>Submit button</b> to finalize action.</p>
     </div>
-  </form>
+
     <h3>Members of skn mos: </h3>
       <table>
         <tr>

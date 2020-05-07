@@ -17,7 +17,9 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import java.text.ParseException;
+import java.util.logging.*;
 
 @Path(config.app_url)
 public class snakeApp{
@@ -27,7 +29,7 @@ public class snakeApp{
         public static final int PASS_CHANGE_FAILED = 1;
         public static final int PASS_IDLE = -1;
     }
-
+    
     @Context
     private HttpServletRequest request;
     
@@ -58,8 +60,7 @@ public class snakeApp{
         laboratoryState l = sc.getLabState();
         request.setAttribute("u_info",       u);
         request.setAttribute("active_users", l.loggedUsers);
-        request.setAttribute("temp_in",      l.temperature);
-        request.setAttribute("humidity_out", l.humidity);
+        request.setAttribute("active_sensors", l.sensors);
         request.setAttribute("response_msg", pass_status);
     }
 
@@ -80,7 +81,7 @@ public class snakeApp{
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
+        PreparedStatement stmt = conn.prepareStatement("select * from users where login=? and pass_hash=?");
         String pass_hash = sha256.toHexString(sha256.getSHA(o_password)); 
         String login = u.getuserlogin(); 
         stmt.setString(1, login);
@@ -121,6 +122,104 @@ public class snakeApp{
         request.getRequestDispatcher(config.snake_page)
                .forward(request, response);
         return;
+    }
+    @GET
+    @Path(config.download_logs_url)
+    @Produces("text/plain")
+    public Response getTextFile() {
+ 
+        File file = new File(config.log_name);
+ 
+        ResponseBuilder response = Response.ok((Object) file);
+        response.header("Content-Disposition", "attachment; filename=\""+ config.log_name +"\"");
+        return response.build();
+    }
+
+    @GET
+    @Path(config.lab_unlock_url)
+    public void ulock_from_page() throws Exception
+    {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        sc.unlockLaboratory();
+        sc.log(Level.INFO, "User {0} unlock laboratory using page", new String[] {u.getuserlogin()} );
+
+        response.sendRedirect(config.getAppUrl());
+    }
+
+    @GET
+    @Path(config.lab_lock_url)
+    public void lock_from_page()throws Exception
+    {
+        HttpSession session = request.getSession(false);
+        if(session == null)
+        {
+            response.sendRedirect(config.getLoginUrl());
+            return;
+        }
+        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        sc.lockLaboratory();
+        sc.log(Level.INFO, "User {0} lock laboratory using page", new String[] {u.getuserlogin()} );
+        
+        response.sendRedirect(config.getAppUrl());
+    }
+
+    @POST
+    @Path(config.lab_unlock_url) 
+    public Response log_active_users_by_mac(
+            @FormParam("mac") String mac_addr
+           )throws Exception
+    {
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select login from mac where mac=?");
+        
+        stmt.setString(1,mac_addr);
+        ResultSet res = stmt.executeQuery();
+        if(!res.next())
+        {
+            sc.log(Level.WARNING, "Mac {0} not found",new String[] {mac_addr});
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+        String user = res.getString(1); 
+        sc.log(Level.INFO, "User {0} detected in laboratory by his MAC attached to network",new String[] {user});
+        return Response.ok("").build();
+    }
+
+    @POST
+    @Path(config.lab_unlock_url) 
+    public Response ulock_from_sensors(
+            @FormParam("pin") int pin,
+            @FormParam("rfid") String rfid
+           )throws Exception
+    {
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from users where pin=?");
+        stmt.setInt(1, pin);
+        ResultSet res = stmt.executeQuery();
+        if(!res.next())
+        {
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+
+        InputStream input = res.getBinaryStream("rfid");
+        int rfid_size = res.getInt(2);
+        byte[] rfid_raw = new byte[rfid_size];
+        input.read(rfid_raw);
+        String rfid_db = sha256.toHexString(rfid_raw);
+        if(rfid.equals(rfid_db) == false)
+        {
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+
+        sc.unlockLaboratory();
+        return Response.ok("").build();
     }
 
     @GET

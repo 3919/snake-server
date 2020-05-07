@@ -4,5 +4,5 @@ build
 .settings
 .classpath
 # VIM: Swap-files
-*.s[a-w][a-z]
+*.sw[a-z]
 tags
