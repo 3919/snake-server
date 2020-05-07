@@ -4,8 +4,7 @@ import com.fazecast.jSerialComm.*;
 
 import java.util.logging.Logger;
 import java.util.Date;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.*;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Context;
 import javax.servlet.http.*;
@@ -57,30 +56,39 @@ public class systemCore
         }
     }
 
-    public void unlockLaboratory()
+    public void unlockLaboratory(String login)
     {
-        SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
-        boolean openedSuccessfully =locker.openPort(0);
-		if (!openedSuccessfully)
-			return;
-        locker.setBaudRate(115200);
-        byte[] open_msg = {0x2,0x1};
-        locker.writeBytes(open_msg, 2);
-        locker.closePort();
-        
+        //SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
+        //boolean openedSuccessfully =locker.openPort(0);
+		//if (!openedSuccessfully)
+		//	return;
+        //locker.setBaudRate(115200);
+        //byte[] open_msg = {0x2,0x1};
+        //locker.writeBytes(open_msg, 2);
+        //locker.closePort();
+        log(Level.INFO, "Laboratory unlcked by {0}",new String[] {login});
         state.labOpen=true;
     }
 
-    public void lockLaboratory()
+    public void lockLaboratory(String login)
     {
-        SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
-        boolean openedSuccessfully =locker.openPort(0);
-		if (!openedSuccessfully)
-			return;
-        locker.setBaudRate(115200);
-        byte[] open_msg = {0x2,0x2};
-        locker.writeBytes(open_msg, 2);
-        locker.closePort();
+        //SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
+        //boolean openedSuccessfully =locker.openPort(0);
+		//if (!openedSuccessfully)
+		//	return;
+        //locker.setBaudRate(115200);
+        //byte[] open_msg = {0x2,0x2};
+        //locker.writeBytes(open_msg, 2);
+        //locker.closePort();
+        for(sensor s : state.sensors)
+        {
+            if(s.type == sensor.OPEN_WINDOW_DETECTOR && s.value == 1.0) // if window open
+            {
+                this.log(Level.SEVERE, "Laboratory locked. However window left opened", null);
+                break;
+            }
+        }
+        this.log(Level.INFO, "Laboratory locked by {0}",new String[]{login});
         state.labOpen=false;
     }
 
@@ -89,10 +97,10 @@ public class systemCore
         return state;
     }
 
-    @POST
+    @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path(config.sensor_update_url)
-    public Response handleSensor(@Valid sensor s)
+    @Path(config.sensor_url)
+    public Response handleSensor(sensor s)
     {
         sensor f_s = state.getSensorByName(s.sensor_name);
         if(f_s == null)
@@ -100,6 +108,7 @@ public class systemCore
             state.sensors.add(s);
         }else
         {
+            f_s.type = s.type;
             f_s.value = s.value;
         }
         return Response.ok("").build();

@@ -146,8 +146,7 @@ public class snakeApp{
             return;
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        sc.unlockLaboratory();
-        sc.log(Level.INFO, "User {0} unlock laboratory using page", new String[] {u.getuserlogin()} );
+        sc.unlockLaboratory(u.getuserlogin());
 
         response.sendRedirect(config.getAppUrl());
     }
@@ -163,14 +162,13 @@ public class snakeApp{
             return;
         }
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        sc.lockLaboratory();
-        sc.log(Level.INFO, "User {0} lock laboratory using page", new String[] {u.getuserlogin()} );
+        sc.lockLaboratory(u.getuserlogin());
         
         response.sendRedirect(config.getAppUrl());
     }
 
     @POST
-    @Path(config.lab_unlock_url) 
+    @Path(config.active_users_by_mac_url) 
     public Response log_active_users_by_mac(
             @FormParam("mac") String mac_addr
            )throws Exception
@@ -192,24 +190,57 @@ public class snakeApp{
     }
 
     @POST
-    @Path(config.lab_unlock_url) 
-    public Response ulock_from_sensors(
+    @Path(config.lab_sensor_unlock_url) 
+    public Response unlock_from_sensors(
             @FormParam("pin") int pin,
             @FormParam("rfid") String rfid
            )throws Exception
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from users where pin=?");
+        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from Users where pin=?");
         stmt.setInt(1, pin);
         ResultSet res = stmt.executeQuery();
         if(!res.next())
         {
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
         }
-
+        System.out.println("DUPA111111");
+        String login= res.getString(1);
         InputStream input = res.getBinaryStream("rfid");
-        int rfid_size = res.getInt(2);
+        int rfid_size = res.getInt(3);
+        byte[] rfid_raw = new byte[rfid_size];
+        input.read(rfid_raw);
+        String rfid_db = sha256.toHexString(rfid_raw);
+        if(rfid.equals(rfid_db) == false)
+        {
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+        System.out.println("DUPA222222");
+
+        sc.unlockLaboratory(login);
+        return Response.ok("").build();
+    }
+
+    @POST
+    @Path(config.lab_sensor_lock_url) 
+    public Response lock_from_sensors(
+            @FormParam("pin") int pin,
+            @FormParam("rfid") String rfid
+           )throws Exception
+    {
+        Class.forName("org.mariadb.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
+        PreparedStatement stmt = conn.prepareStatement("select login, rfid, OCTET_LENGTH(rfid) from Users where pin=?");
+        stmt.setInt(1, pin);
+        ResultSet res = stmt.executeQuery();
+        if(!res.next())
+        {
+           return Response.status(Response.Status.FORBIDDEN).entity("").build();
+        }
+        String login= res.getString(1);
+        InputStream input = res.getBinaryStream("rfid");
+        int rfid_size = res.getInt(3);
         byte[] rfid_raw = new byte[rfid_size];
         input.read(rfid_raw);
         String rfid_db = sha256.toHexString(rfid_raw);
@@ -218,7 +249,7 @@ public class snakeApp{
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
         }
 
-        sc.unlockLaboratory();
+        sc.lockLaboratory(login);
         return Response.ok("").build();
     }
 
