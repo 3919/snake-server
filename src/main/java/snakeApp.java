@@ -85,7 +85,7 @@ public class snakeApp{
         userDescriptor u =(userDescriptor)session.getAttribute("user_info");
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-        PreparedStatement stmt = conn.prepareStatement("select * from users where login=? and pass_hash=?");
+        PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
         String pass_hash = sha256.toHexString(sha256.getSHA(o_password)); 
         String login = u.getuserlogin(); 
         stmt.setString(1, login);
