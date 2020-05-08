@@ -211,6 +211,7 @@ public class userManagerServlet
                    .forward(request, response);
         }catch(Exception e)
         {
+            System.out.print(e);
             editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
             ueServlet.getRequestDispatcher(config.edit_user_page)
                    .forward(request, response);
