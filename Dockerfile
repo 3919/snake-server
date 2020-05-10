@@ -23,7 +23,7 @@ ENV TOMEEDIR "/opt/apache-tomee-plume-8.0.1/"
 
 RUN cd /opt/snake-server \
   && gradle war \
-  && cp build/libs/snake-server-1.0-SNAPSHOT.war $TOMEEDIR/webapps/snake-server.war
+  && cp build/libs/snake-server-1.0-SNAPSHOT.war $TOMEEDIR/webapps/rest.war
 
 COPY entrypoint.sh /usr/bin/snake-server
 ENTRYPOINT [ "/usr/bin/snake-server" ]
