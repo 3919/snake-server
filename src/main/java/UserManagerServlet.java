@@ -21,8 +21,8 @@ import java.text.ParseException;
 import javax.servlet.ServletContext;
 import java.util.logging.*;
 
-@Path(config.user_manage_url)
-public class userManagerServlet
+@Path(Config.user_manage_url)
+public class UserManagerServlet
 {
     public final class EditStatus{
         public static final int OK     = 0;
@@ -36,10 +36,10 @@ public class userManagerServlet
 	private HttpServletResponse response;
     
     @Inject
-    private systemCore sc;
+    private SystemCore sc;
     
 
-    void editSetAttributes(int status, userDescriptor user, userDescriptor edited_user) throws Exception
+    void editSetAttributes(int status, UserDescriptor user, UserDescriptor edited_user) throws Exception
     {
         request.setAttribute("status",       status);
         request.setAttribute("current_user", user);
@@ -47,13 +47,13 @@ public class userManagerServlet
         request.setAttribute("users",        getAllUsers());
     }
 
-    public static ArrayList<userDescriptor> getAllUsers() throws Exception
+    public static ArrayList<UserDescriptor> getAllUsers() throws Exception
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("select *, OCTET_LENGTH(rfid) from Users");
         ResultSet res = stmt.executeQuery();
-        ArrayList<userDescriptor> users = new ArrayList<userDescriptor>();  
+        ArrayList<UserDescriptor> users = new ArrayList<UserDescriptor>();  
         while(res.next())
         {
             InputStream input = res.getBinaryStream("rfid");
@@ -63,15 +63,15 @@ public class userManagerServlet
 
             int id = res.getInt(1);
             String login= res.getString(2);
-            int user_privilege = res.getInt(4);
+            int user_Privilege = res.getInt(4);
             int pin = res.getInt(5);
             String user_name = res.getString(6);
             String user_surname = res.getString(7);
             String user_nick = res.getString(8);
             String account_expire_time = res.getString(9);
-            userDescriptor u = new userDescriptor(id,
+            UserDescriptor u = new UserDescriptor(id,
                                                   login,
-                                                  user_privilege,
+                                                  user_Privilege,
                                                   pin,
                                                   user_name,
                                                   user_surname,
@@ -90,17 +90,17 @@ public class userManagerServlet
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        editSetAttributes(EditStatus.IDLE, u, new userDescriptor());
-        request.getRequestDispatcher(config.edit_user_page)
+        editSetAttributes(EditStatus.IDLE, u, new UserDescriptor());
+        request.getRequestDispatcher(Config.edit_user_page)
                .forward(request, response);
     }
 
@@ -112,7 +112,7 @@ public class userManagerServlet
 		@FormParam("userid") int id,
 		@FormParam("login") String login,
 		@FormParam("password") String password,
-		@FormParam("privilege") int priv,
+		@FormParam("Privilege") int priv,
 		@FormParam("pin") int pin,
 		@FormParam("name") String name,
 		@FormParam("surname") String surname,
@@ -123,22 +123,22 @@ public class userManagerServlet
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
 
-        ServletContext ueServlet= request.getServletContext().getContext(config.getUserEditUrl());
+        ServletContext ueServlet= request.getServletContext().getContext(Config.getUserEditUrl());
         // validate required fileds
         if(login.length() == 0 || priv< 0 ||  priv >2 || pin < 1000)
         {
-            editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_user_page)
+            editSetAttributes(EditStatus.FAILED,u, new UserDescriptor());
+            ueServlet.getRequestDispatcher(Config.edit_user_page)
                    .forward(request, response);
             return;
         }
@@ -148,8 +148,8 @@ public class userManagerServlet
         try {
             Date date = formatter.parse(expire);
         } catch (ParseException e) {
-            editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_user_page)
+            editSetAttributes(EditStatus.FAILED, u, new UserDescriptor());
+            ueServlet.getRequestDispatcher(Config.edit_user_page)
                    .forward(request, response);
            return;
         }
@@ -158,18 +158,18 @@ public class userManagerServlet
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt;
-        byte [] raw_rfid = sha256.toByteArray(rfid);
+        byte [] raw_rfid = Sha256.toByteArray(rfid);
         if( id == -1)
         {
             if(password.length() == 0)
             {
-                editSetAttributes(EditStatus.FAILED,u,  new userDescriptor());
-                ueServlet.getRequestDispatcher(config.edit_user_page)
+                editSetAttributes(EditStatus.FAILED,u,  new UserDescriptor());
+                ueServlet.getRequestDispatcher(Config.edit_user_page)
                        .forward(request, response);
                     return;
             }
-            String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
-            stmt = conn.prepareStatement("INSERT INTO Users(login, pass_hash, privilege, pin, user_name, user_surname, user_nick, valid_till, rfid) VALUES(?,?,?,?,?,?,?,?,?)");
+            String pass_hash = Sha256.toHexString(Sha256.getSHA(password)); 
+            stmt = conn.prepareStatement("INSERT INTO Users(login, pass_hash, Privilege, pin, user_name, user_surname, user_nick, valid_till, rfid) VALUES(?,?,?,?,?,?,?,?,?)");
             stmt.setString(1, login);
             stmt.setString(2, pass_hash);
             stmt.setInt(3, priv);
@@ -183,7 +183,7 @@ public class userManagerServlet
         }
         else // validate data, than update user
         {
-            stmt = conn.prepareStatement("UPDATE Users SET login=?, privilege=?, pin=?, user_name=?,user_surname=?, user_nick=?, valid_till=?, rfid=? WHERE id=?");
+            stmt = conn.prepareStatement("UPDATE Users SET login=?, Privilege=?, pin=?, user_name=?,user_surname=?, user_nick=?, valid_till=?, rfid=? WHERE id=?");
             stmt.setString(1, login);
             stmt.setInt(2, priv);
             stmt.setInt(3, pin);
@@ -199,21 +199,21 @@ public class userManagerServlet
             int rowsUpdated = stmt.executeUpdate();
             if(rowsUpdated == 0)
             {
-                editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-                ueServlet.getRequestDispatcher(config.edit_user_page)
+                editSetAttributes(EditStatus.FAILED,u, new UserDescriptor());
+                ueServlet.getRequestDispatcher(Config.edit_user_page)
                        .forward(request, response);
                return;
             }
             
             sc.log(Level.INFO, "User succefully added/updated. Login {0}",new String[] {login});
-            editSetAttributes(EditStatus.OK, u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_user_page)
+            editSetAttributes(EditStatus.OK, u, new UserDescriptor());
+            ueServlet.getRequestDispatcher(Config.edit_user_page)
                    .forward(request, response);
         }catch(Exception e)
         {
             System.out.print(e);
-            editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_user_page)
+            editSetAttributes(EditStatus.FAILED,u, new UserDescriptor());
+            ueServlet.getRequestDispatcher(Config.edit_user_page)
                    .forward(request, response);
         }
     }
@@ -221,22 +221,22 @@ public class userManagerServlet
     //this method returns requested user
     //to fill form on the page
     @GET
-    @Path(config.edit_url)
+    @Path(Config.edit_url)
     public void editUser(@PathParam("id") String id)throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        ServletContext ueServlet= request.getServletContext().getContext(config.getUserEditUrl());
+        ServletContext ueServlet= request.getServletContext().getContext(Config.getUserEditUrl());
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("select *, OCTET_LENGTH(rfid) from Users where id=?");
@@ -246,8 +246,8 @@ public class userManagerServlet
             ResultSet res = stmt.executeQuery();
             if(!res.next())
             {
-               editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-               ueServlet.getRequestDispatcher(config.edit_user_page)
+               editSetAttributes(EditStatus.FAILED,u, new UserDescriptor());
+               ueServlet.getRequestDispatcher(Config.edit_user_page)
                       .forward(request, response);
                return;
             }
@@ -258,15 +258,15 @@ public class userManagerServlet
             input.read(rfid);
 
             String login= res.getString(2);
-            int user_privilege = res.getInt(4);
+            int user_Privilege = res.getInt(4);
             int pin = res.getInt(5);
             String user_name = res.getString(6);
             String user_surname = res.getString(7);
             String user_nick = res.getString(8);
             String account_expire_time = res.getString(9);
-            userDescriptor edited_user = new userDescriptor(Integer.parseInt(id),
+            UserDescriptor edited_user = new UserDescriptor(Integer.parseInt(id),
                                                        login,
-                                                       user_privilege,
+                                                       user_Privilege,
                                                        pin,
                                                        user_name,
                                                        user_surname,
@@ -274,33 +274,33 @@ public class userManagerServlet
                                                        account_expire_time,
                                                        rfid);
             editSetAttributes(EditStatus.OK, u, edited_user);
-            ueServlet.getRequestDispatcher(config.edit_user_page)
+            ueServlet.getRequestDispatcher(Config.edit_user_page)
                    .forward(request, response);
         }catch(Exception e)
         {
-            editSetAttributes(EditStatus.FAILED,u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_user_page)
+            editSetAttributes(EditStatus.FAILED,u, new UserDescriptor());
+            ueServlet.getRequestDispatcher(Config.edit_user_page)
                    .forward(request, response);
         }
     }
 
     @GET
-    @Path(config.remove_url)
+    @Path(Config.remove_url)
     public void removeUser(@PathParam("id") String id)throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        ServletContext ueServlet= request.getServletContext().getContext(config.getUserEditUrl());
+        ServletContext ueServlet= request.getServletContext().getContext(Config.getUserEditUrl());
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("delete from Users where id=?");
@@ -310,18 +310,18 @@ public class userManagerServlet
             int rowsUpdated = stmt.executeUpdate();
             if(rowsUpdated == 0)
             {
-                editSetAttributes(EditStatus.FAILED, u, new userDescriptor());
-                response.sendRedirect(config.getUserEditUrl());
+                editSetAttributes(EditStatus.FAILED, u, new UserDescriptor());
+                response.sendRedirect(Config.getUserEditUrl());
                 return;
             }
             sc.log(Level.INFO, "User succefully removed, User if {0}",new String[] {id});
 
-            editSetAttributes(EditStatus.OK, u, new userDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_user_page)
+            editSetAttributes(EditStatus.OK, u, new UserDescriptor());
+            ueServlet.getRequestDispatcher(Config.edit_user_page)
                    .forward(request, response);
         }catch(Exception e)
         {
-            response.sendRedirect(config.getUserEditUrl());
+            response.sendRedirect(Config.getUserEditUrl());
             return;
         }
         return;

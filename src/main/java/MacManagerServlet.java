@@ -21,8 +21,8 @@ import java.text.ParseException;
 import javax.servlet.ServletContext;
 import java.util.logging.*;
 
-@Path(config.mac_manage_url)
-public class macManagerServlet
+@Path(Config.mac_manage_url)
+public class MacManagerServlet
 {
     public final class EditStatus{
         public static final int OK     = 0;
@@ -37,30 +37,30 @@ public class macManagerServlet
 	private HttpServletResponse response;
     
     @Inject
-    private systemCore sc;
+    private SystemCore sc;
     
 
-    void editSetAttributes(int status, macDescriptor edited_mac) throws Exception
+    void editSetAttributes(int status, MacDescriptor edited_mac) throws Exception
     {
         request.setAttribute("status",       status);
         request.setAttribute("edited_mac",  edited_mac);
         request.setAttribute("macs",        getAllMacs());
     }
 
-    ArrayList<macDescriptor> getAllMacs() throws Exception
+    ArrayList<MacDescriptor> getAllMacs() throws Exception
     {
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("select * from MAC_MAP");
         ResultSet res = stmt.executeQuery();
-        ArrayList<macDescriptor> macs = new ArrayList<macDescriptor>();  
+        ArrayList<MacDescriptor> macs = new ArrayList<MacDescriptor>();  
         while(res.next())
         {
             HttpSession session = request.getSession(true);
             int id = res.getInt(1);
             String login= res.getString(2);
             String mac = res.getString(3);
-            macDescriptor u = new macDescriptor(id,
+            MacDescriptor u = new MacDescriptor(id,
                                                 login,
                                                 mac);
             macs.add(u);
@@ -75,17 +75,17 @@ public class macManagerServlet
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        editSetAttributes(EditStatus.IDLE, new macDescriptor());
-        request.getRequestDispatcher(config.edit_mac_page)
+        editSetAttributes(EditStatus.IDLE, new MacDescriptor());
+        request.getRequestDispatcher(Config.edit_mac_page)
                .forward(request, response);
     }
 
@@ -101,22 +101,22 @@ public class macManagerServlet
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        ServletContext servlet= request.getServletContext().getContext(config.getMacEditUrl());
+        ServletContext servlet= request.getServletContext().getContext(Config.getMacEditUrl());
         
         mac = mac.replace(":","");
         if(mac.length() != 12)
         {
-            editSetAttributes(EditStatus.FAILED,new macDescriptor());
-            servlet.getRequestDispatcher(config.edit_mac_page)
+            editSetAttributes(EditStatus.FAILED,new MacDescriptor());
+            servlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
             return;
         }
@@ -127,8 +127,8 @@ public class macManagerServlet
         }
         catch(Exception e)
         {
-            editSetAttributes(EditStatus.FAILED, new macDescriptor());
-            servlet.getRequestDispatcher(config.edit_mac_page)
+            editSetAttributes(EditStatus.FAILED, new MacDescriptor());
+            servlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
             return;
         }
@@ -136,8 +136,8 @@ public class macManagerServlet
         // validate required fileds
         if(login.length() == 0)
         {
-            editSetAttributes(EditStatus.FAILED, new macDescriptor());
-            servlet.getRequestDispatcher(config.edit_mac_page)
+            editSetAttributes(EditStatus.FAILED, new MacDescriptor());
+            servlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
             return;
         }
@@ -157,8 +157,8 @@ public class macManagerServlet
             ResultSet res = stmt.executeQuery();
             if(!res.next())
             {
-               editSetAttributes(EditStatus.FAILED, new macDescriptor());
-               servlet.getRequestDispatcher(config.edit_mac_page)
+               editSetAttributes(EditStatus.FAILED, new MacDescriptor());
+               servlet.getRequestDispatcher(Config.edit_mac_page)
                       .forward(request, response);
                return;
             }
@@ -171,20 +171,20 @@ public class macManagerServlet
             int rowsUpdated = stmt.executeUpdate();
             if(rowsUpdated == 0)
             {
-                editSetAttributes(EditStatus.FAILED,new macDescriptor());
-                servlet.getRequestDispatcher(config.edit_mac_page)
+                editSetAttributes(EditStatus.FAILED,new MacDescriptor());
+                servlet.getRequestDispatcher(Config.edit_mac_page)
                        .forward(request, response);
                return;
             }
             
             sc.log(Level.INFO, "Mac address succefully added/updated. Login {0}, mac {1}",new String[] {login, mac});
-            editSetAttributes(EditStatus.OK, new macDescriptor());
-            servlet.getRequestDispatcher(config.edit_mac_page)
+            editSetAttributes(EditStatus.OK, new MacDescriptor());
+            servlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
         }catch(Exception e)
         {
-            editSetAttributes(EditStatus.FAILED, new macDescriptor());
-            servlet.getRequestDispatcher(config.edit_mac_page)
+            editSetAttributes(EditStatus.FAILED, new MacDescriptor());
+            servlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
         }
     }
@@ -192,22 +192,22 @@ public class macManagerServlet
     //this method returns requested user
     //to fill form on the page
     @GET
-    @Path(config.edit_url)
+    @Path(Config.edit_url)
     public void editMac(@PathParam("id") String id)throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        ServletContext servlet= request.getServletContext().getContext(config.getMacEditUrl());
+        ServletContext servlet= request.getServletContext().getContext(Config.getMacEditUrl());
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("select * from MAC_MAP where id=?");
@@ -217,44 +217,44 @@ public class macManagerServlet
             ResultSet res = stmt.executeQuery();
             if(!res.next())
             {
-               editSetAttributes(EditStatus.FAILED, new macDescriptor());
-               servlet.getRequestDispatcher(config.edit_mac_page)
+               editSetAttributes(EditStatus.FAILED, new MacDescriptor());
+               servlet.getRequestDispatcher(Config.edit_mac_page)
                       .forward(request, response);
                return;
             }
             String login= res.getString(2);
             String mac= res.getString(3);
-            macDescriptor edited_mac = new macDescriptor(Integer.parseInt(id),
+            MacDescriptor edited_mac = new MacDescriptor(Integer.parseInt(id),
                                                        login,
                                                        mac);
             editSetAttributes(EditStatus.OK, edited_mac);
-            servlet.getRequestDispatcher(config.edit_mac_page)
+            servlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
         }catch(Exception e)
         {
-            editSetAttributes(EditStatus.FAILED,new macDescriptor());
-            servlet.getRequestDispatcher(config.edit_mac_page)
+            editSetAttributes(EditStatus.FAILED,new MacDescriptor());
+            servlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
         }
     }
 
     @GET
-    @Path(config.remove_url)
+    @Path(Config.remove_url)
     public void removeMac(@PathParam("id") String id)throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
-        if(u.getprivilege() != privilege.ADMIN)
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
+        if(u.getPrivilege() != Privilege.ADMIN)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        ServletContext ueServlet= request.getServletContext().getContext(config.getMacEditUrl());
+        ServletContext ueServlet= request.getServletContext().getContext(Config.getMacEditUrl());
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("delete from MAC_MAP where id=?");
@@ -264,19 +264,19 @@ public class macManagerServlet
             int rowsUpdated = stmt.executeUpdate();
             if(rowsUpdated == 0)
             {
-                editSetAttributes(EditStatus.FAILED, new macDescriptor());
-                response.sendRedirect(config.getMacEditUrl());
+                editSetAttributes(EditStatus.FAILED, new MacDescriptor());
+                response.sendRedirect(Config.getMacEditUrl());
                 return;
             }
             sc.log(Level.INFO, "Mac succefully removed, Mac id {0}",new String[] {id});
 
-            editSetAttributes(EditStatus.OK, new macDescriptor());
-            ueServlet.getRequestDispatcher(config.edit_mac_page)
+            editSetAttributes(EditStatus.OK, new MacDescriptor());
+            ueServlet.getRequestDispatcher(Config.edit_mac_page)
                    .forward(request, response);
         }catch(Exception e)
         {
-            editSetAttributes(EditStatus.FAILED, new macDescriptor());
-            response.sendRedirect(config.getMacEditUrl());
+            editSetAttributes(EditStatus.FAILED, new MacDescriptor());
+            response.sendRedirect(Config.getMacEditUrl());
             return;
         }
         return;

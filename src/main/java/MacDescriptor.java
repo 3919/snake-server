@@ -1,16 +1,16 @@
 package rest;
 import java.util.Date;
 
-public class macDescriptor
+public class MacDescriptor
 {
    private String userlogin="";
 
    private int id=-1;
    private String mac_addr="";
    
-   macDescriptor(){}
+   MacDescriptor(){}
 
-   macDescriptor(int e_id, 
+   MacDescriptor(int e_id, 
                   String login, 
                   String mac)
    {

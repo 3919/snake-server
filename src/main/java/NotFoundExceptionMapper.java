@@ -13,7 +13,7 @@ public class NotFoundExceptionMapper implements ExceptionMapper<ClientErrorExcep
     public Response toResponse(ClientErrorException exception) 
     {
         try{
-            String fPath = appPath + config.war_url + "/404.html";
+            String fPath = appPath + Config.war_url + "/404.html";
             File file = new File(fPath);
             FileInputStream fis = new FileInputStream(file);
             byte[] data = new byte[(int) file.length()];

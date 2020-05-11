@@ -23,11 +23,11 @@ import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 
 @ApplicationScoped
 @Path("")
-public class systemCore
+public class SystemCore
 {
-    public class cleanersDescriptor
+    public class CleanersDescriptor
     {
-        public userDescriptor[] staff = {new userDescriptor(), new userDescriptor()};
+        public UserDescriptor[] staff = {new UserDescriptor(), new UserDescriptor()};
         public int [] lastDraw = {-1, -1};
         public Date nextDrawDate = new Date();
         boolean userValid(int id)
@@ -41,19 +41,19 @@ public class systemCore
     @Context
     private HttpServletRequest request;
     
-    private laboratoryState state = new laboratoryState();
+    private LaboratoryState state = new LaboratoryState();
     private Connection conn;
 
-    private cleanersDescriptor cleaners= new cleanersDescriptor();
+    private CleanersDescriptor cleaners= new CleanersDescriptor();
     private Slack slack;
     private String token;
 
-    public systemCore()
+    public SystemCore()
     {
         try{
             Class.forName("org.mariadb.jdbc.Driver");
             conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
-            fh = new FileHandler(config.log_name , true);
+            fh = new FileHandler(Config.log_name , true);
             logger.addHandler(fh);
             SimpleFormatter formatter = new SimpleFormatter();  
             fh.setFormatter(formatter);
@@ -65,7 +65,7 @@ public class systemCore
             e.printStackTrace();
         }
     }
-    public cleanersDescriptor getCleaners()
+    public CleanersDescriptor getCleaners()
     {
         return cleaners;
     }
@@ -73,7 +73,7 @@ public class systemCore
     public void drawCleaners() throws Exception
     {
         Date current_time = new Date();
-        ArrayList<userDescriptor> users = userManagerServlet.getAllUsers();
+        ArrayList<UserDescriptor> users = UserManagerServlet.getAllUsers();
         if(current_time.compareTo(cleaners.nextDrawDate) < 0 || users.size() == 0)
         {
             return;
@@ -140,9 +140,9 @@ public class systemCore
         //locker.writeBytes(open_msg, 2);
         //locker.closePort();
         try{
-            for(sensor s : state.sensors)
+            for(Sensor s : state.Sensors)
             {
-                if(s.type == sensor.OPEN_WINDOW_DETECTOR && s.value == 1.0) // if window open
+                if(s.type == Sensor.OPEN_WINDOW_DETECTOR && s.value == 1.0) // if window open
                 {
                     ChatPostMessageResponse response = slack.methods(token).chatPostMessage(req -> req
                                                   .channel("lab_info") // Channel ID
@@ -162,20 +162,20 @@ public class systemCore
         state.labOpen=false;
     }
 
-    public laboratoryState getLabState()
+    public LaboratoryState getLabState()
     {
         return state;
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path(config.sensor_url)
-    public Response handleSensor(sensor s)
+    @Path(Config.Sensor_url)
+    public Response handleSensor(Sensor s)
     {
-        sensor f_s = state.getSensorByName(s.sensor_name);
+        Sensor f_s = state.getSensorByName(s.Sensor_name);
         if(f_s == null)
         {
-            state.sensors.add(s);
+            state.Sensors.add(s);
         }else
         {
             f_s.type = s.type;
@@ -185,17 +185,17 @@ public class systemCore
     }
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path(config.ajax_sensors_path)
-    public ArrayList<sensor> getSensors()
+    @Path(Config.ajax_Sensors_path)
+    public ArrayList<Sensor> getSensors()
     {
-        return state.sensors;
+        return state.Sensors;
     }
 
-    userDescriptor findUser(int id)
+    UserDescriptor findUser(int id)
     {
         for(int i =0; i < state.loggedUsers.size(); i++)
         {
-            userDescriptor u_tmp = state.loggedUsers.get(i);
+            UserDescriptor u_tmp = state.loggedUsers.get(i);
             if(u_tmp.getid() == id)
             {
                 return u_tmp;
@@ -204,11 +204,11 @@ public class systemCore
         return null;
     }
     
-    userDescriptor findUser(userDescriptor u)
+    UserDescriptor findUser(UserDescriptor u)
     {
         for(int i =0; i < state.loggedUsers.size(); i++)
         {
-            userDescriptor u_tmp = state.loggedUsers.get(i);
+            UserDescriptor u_tmp = state.loggedUsers.get(i);
             if(u_tmp.getid() == u.getid())
             {
                 return u_tmp;
@@ -217,10 +217,10 @@ public class systemCore
         return null;
     }
 
-    public void addUser(userDescriptor u)
+    public void addUser(UserDescriptor u)
     {
         // if user allready logged, only increment active user sessions
-        userDescriptor user = findUser(u); 
+        UserDescriptor user = findUser(u); 
         if (user != null)
         {
            user.newSessionCreated();
@@ -230,9 +230,9 @@ public class systemCore
         state.loggedUsers.add(u);
     }
 
-    public void removeUser(userDescriptor u)
+    public void removeUser(UserDescriptor u)
     {
-        userDescriptor user = findUser(u); 
+        UserDescriptor user = findUser(u); 
         int leftSessions = user.sessionDestroyed();
         if(leftSessions > 0)
             return;

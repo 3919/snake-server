@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<%@ page import = "rest.snakeApp.*" %>
-<%@ page import = "rest.privilege" %>
-<%@ page import = "rest.userManagerServlet" %>
-<%@ page import = "rest.userDescriptor" %>
+<%@ page import = "rest.SnakeApp.*" %>
+<%@ page import = "rest.Privilege" %>
+<%@ page import = "rest.UserManagerServlet" %>
+<%@ page import = "rest.UserDescriptor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
 <%@ page import = "javax.servlet.jsp.PageContext" %>
 <%
   int op_status =(int)request.getAttribute("status");
-  userDescriptor curr_u =(userDescriptor)request.getAttribute("current_user");
-  userDescriptor edited_u =(userDescriptor)request.getAttribute("edited_user");
+  UserDescriptor curr_u =(UserDescriptor)request.getAttribute("current_user");
+  UserDescriptor edited_u =(UserDescriptor)request.getAttribute("edited_user");
   String[] privOptions = {"", ""};
-  privOptions[edited_u.getprivilege()] = "selected=\"selected\"";
+  privOptions[edited_u.getPrivilege()] = "selected=\"selected\"";
   pageContext.setAttribute("edited_id",edited_u.getid());
   pageContext.setAttribute("edited_login",edited_u.getuserlogin());
   pageContext.setAttribute("priv_option_0",privOptions[0]);
@@ -22,7 +22,7 @@
   pageContext.setAttribute("edited_nick",edited_u.getnick());
   pageContext.setAttribute("edited_expire",edited_u.getaccountexpire());
   pageContext.setAttribute("edited_rfid",edited_u.getrfid());
-  ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("users");
+  ArrayList<UserDescriptor> users = (ArrayList<UserDescriptor>)request.getAttribute("users");
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
 %>
 
@@ -178,9 +178,9 @@
   <div id ="user_content"> 
     <%
       out.println("<h3>Hi <div name=\"user_info\">" + curr_u.getname() + " " + curr_u.getsurname() + "</dir> </h3>");
-      if (op_status != userManagerServlet.EditStatus.IDLE) 
+      if (op_status != UserManagerServlet.EditStatus.IDLE) 
       {
-          if ((int)op_status == userManagerServlet.EditStatus.OK) {
+          if ((int)op_status == UserManagerServlet.EditStatus.OK) {
               out.println("<h6 style=\"color:green\">Action performed successfuly</h6>");
           }else{
               out.println("<h6 style=\"color:red\">Action has failed</h6>");
@@ -201,7 +201,7 @@
       <input type="password" id="pwd" placeholder="User password" name="password">
       
       <label for="priv">Privilege:</label>
-      <select id="priv" id="priv" placeholder="User privilege" name="privilege">
+      <select id="priv" id="priv" placeholder="User Privilege" name="Privilege">
         <option value="0" ${priv_option_0} >User</option>
         <option value="1" ${priv_option_1} >Admin</option>
       </select>
@@ -265,7 +265,7 @@
           out.println("<tr>");
             out.println("<td>" + users.get(i).getid() + "</td>");
             out.println("<td>" + users.get(i).getuserlogin() + "</td>");
-            if( users.get(i).getprivilege() == 0)
+            if( users.get(i).getPrivilege() == 0)
               out.println("<td>User account</td>");
             else
               out.println("<td>Admin account</td>");

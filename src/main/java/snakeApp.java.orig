@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
-@Path(config.app_url)
-public class snakeApp{
+@Path(Config.app_url)
+public class SnakeApp{
 
     public final class PassStatus{
         public static final int PASS_CHANGE_OK     = 0;
@@ -35,7 +35,7 @@ public class snakeApp{
 	private HttpServletResponse response;
     
     @Inject
-    private systemCore sc;
+    private SystemCore sc;
 
     @GET
     public void renderApp() throws Exception
@@ -43,12 +43,12 @@ public class snakeApp{
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
 <<<<<<< HEAD
         requestSetAttributes(32.7, 37.6, PassStatus.PASS_IDLE);
-        request.getRequestDispatcher(config.snake_page)
+        request.getRequestDispatcher(Config.snake_page)
                .forward(request, response);
     }
     void requestSetAttributes(double tmp, double hum, int pass_stat)
@@ -68,15 +68,15 @@ public class snakeApp{
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
         // checkc if old password is correct
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
-        String pass_hash = sha256.toHexString(sha256.getSHA(o_password)); 
+        String pass_hash = Sha256.toHexString(Sha256.getSHA(o_password)); 
         String login = u.getuserlogin(); 
         stmt.setString(1, login);
         stmt.setString(2, pass_hash);
@@ -84,7 +84,7 @@ public class snakeApp{
         if(!res.next())
         {
             requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
@@ -92,14 +92,14 @@ public class snakeApp{
         if(!n_password.equals(r_password))  
         {
             requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
         
         // update new password
         stmt = conn.prepareStatement("UPDATE Users SET pass_hash=? WHERE login=?");
-        pass_hash = sha256.toHexString(sha256.getSHA(n_password)); 
+        pass_hash = Sha256.toHexString(Sha256.getSHA(n_password)); 
 
         stmt.setString(1, pass_hash);
         stmt.setString(2, login);
@@ -107,24 +107,24 @@ public class snakeApp{
         if(rowsUpdated == 0)
         {
             requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_FAILED);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
 
         requestSetAttributes(32.7, 37.6, PassStatus.PASS_CHANGE_OK);
 =======
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
         appSetAttributes(PassStatus.PASS_IDLE, u);
 >>>>>>> origin/edit_page_servlet
-        request.getRequestDispatcher(config.snake_page)
+        request.getRequestDispatcher(Config.snake_page)
                .forward(request, response);
         return;
     }
 
-    void appSetAttributes(int pass_status, userDescriptor u)
+    void appSetAttributes(int pass_status, UserDescriptor u)
     {
-        laboratoryState l = sc.getLabState();
+        LaboratoryState l = sc.getLabState();
         request.setAttribute("u_info",       u);
         request.setAttribute("active_users", l.loggedUsers);
         request.setAttribute("temp_in",      l.temperature);
@@ -142,15 +142,15 @@ public class snakeApp{
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
         // checkc if old password is correct
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
-        String pass_hash = sha256.toHexString(sha256.getSHA(o_password)); 
+        String pass_hash = Sha256.toHexString(Sha256.getSHA(o_password)); 
         String login = u.getuserlogin(); 
         stmt.setString(1, login);
         stmt.setString(2, pass_hash);
@@ -158,7 +158,7 @@ public class snakeApp{
         if(!res.next())
         {
             appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
@@ -166,14 +166,14 @@ public class snakeApp{
         if(!n_password.equals(r_password))  
         {
             appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
         
         // update new password
         stmt = conn.prepareStatement("UPDATE Users SET pass_hash=? WHERE login=?");
-        pass_hash = sha256.toHexString(sha256.getSHA(n_password)); 
+        pass_hash = Sha256.toHexString(Sha256.getSHA(n_password)); 
 
         stmt.setString(1, pass_hash);
         stmt.setString(2, login);
@@ -181,29 +181,29 @@ public class snakeApp{
         if(rowsUpdated == 0)
         {
             appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
 
         appSetAttributes(PassStatus.PASS_CHANGE_OK, u);
-        request.getRequestDispatcher(config.snake_page)
+        request.getRequestDispatcher(Config.snake_page)
                .forward(request, response);
         return;
     }
 
     @GET
-    @Path(config.logout_url)
+    @Path(Config.logout_url)
     public Response logout() throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            URI uri = new URI(config.getLoginUrl());
+            URI uri = new URI(Config.getLoginUrl());
             return Response.seeOther(uri).build();
         }
 
-        URI uri = new URI(config.logout_url);
+        URI uri = new URI(Config.logout_url);
         return Response.seeOther(uri).build();
     }
 };

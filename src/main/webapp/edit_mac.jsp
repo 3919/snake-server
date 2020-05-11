@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<%@ page import = "rest.snakeApp.*" %>
-<%@ page import = "rest.privilege" %>
-<%@ page import = "rest.macManagerServlet" %>
-<%@ page import = "rest.macDescriptor" %>
+<%@ page import = "rest.SnakeApp.*" %>
+<%@ page import = "rest.Privilege" %>
+<%@ page import = "rest.MacManagerServlet" %>
+<%@ page import = "rest.MacDescriptor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
 <%@ page import = "javax.servlet.jsp.PageContext" %>
 <%
   int op_status =(int)request.getAttribute("status");
-  macDescriptor edited_mac =(macDescriptor)request.getAttribute("edited_mac");
+  MacDescriptor edited_mac =(MacDescriptor)request.getAttribute("edited_mac");
   pageContext.setAttribute("edited_id",edited_mac.getid());
   pageContext.setAttribute("edited_login",edited_mac.getuserlogin());
   pageContext.setAttribute("edited_mac",edited_mac.getmac());
-  ArrayList<macDescriptor>macs= (ArrayList<macDescriptor>)request.getAttribute("macs");
+  ArrayList<MacDescriptor>macs= (ArrayList<MacDescriptor>)request.getAttribute("macs");
 %>
 
 <html>
@@ -166,9 +166,9 @@
 </div>
   <div id ="user_content"> 
     <%
-      if (op_status != macManagerServlet.EditStatus.IDLE) 
+      if (op_status != MacManagerServlet.EditStatus.IDLE) 
       {
-          if ((int)op_status == macManagerServlet.EditStatus.OK) {
+          if ((int)op_status == MacManagerServlet.EditStatus.OK) {
               out.println("<h6 style=\"color:green\">Action performed successfuly</h6>");
           }else{
               out.println("<h6 style=\"color:red\">Action has failed</h6>");

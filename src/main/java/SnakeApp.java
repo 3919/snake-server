@@ -23,8 +23,8 @@ import java.util.logging.*;
 import com.slack.api.Slack;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 
-@Path(config.app_url)
-public class snakeApp{
+@Path(Config.app_url)
+public class SnakeApp{
 
     public final class PassStatus{
         public static final int PASS_CHANGE_OK     = 0;
@@ -39,7 +39,7 @@ public class snakeApp{
 	private HttpServletResponse response;
     
     @Inject
-    private systemCore sc;
+    private SystemCore sc;
 
     @GET
     public void renderApp() throws Exception
@@ -47,23 +47,23 @@ public class snakeApp{
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
         sc.drawCleaners();
         appSetAttributes(PassStatus.PASS_IDLE, u);
-        request.getRequestDispatcher(config.snake_page)
+        request.getRequestDispatcher(Config.snake_page)
                .forward(request, response);
         return;
     }
 
-    void appSetAttributes(int pass_status, userDescriptor u)
+    void appSetAttributes(int pass_status, UserDescriptor u)
     {
-        laboratoryState l = sc.getLabState();
+        LaboratoryState l = sc.getLabState();
         request.setAttribute("u_info",       u);
         request.setAttribute("active_users", l.loggedUsers);
-        request.setAttribute("active_sensors", l.sensors);
+        request.setAttribute("active_Sensors", l.Sensors);
         request.setAttribute("response_msg", pass_status);
         request.setAttribute("cleaning_info", sc.getCleaners());
     }
@@ -78,15 +78,15 @@ public class snakeApp{
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
         // checkc if old password is correct
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
         Class.forName("org.mariadb.jdbc.Driver");
         Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
         PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
-        String pass_hash = sha256.toHexString(sha256.getSHA(o_password)); 
+        String pass_hash = Sha256.toHexString(Sha256.getSHA(o_password)); 
         String login = u.getuserlogin(); 
         stmt.setString(1, login);
         stmt.setString(2, pass_hash);
@@ -94,7 +94,7 @@ public class snakeApp{
         if(!res.next())
         {
             appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
@@ -102,14 +102,14 @@ public class snakeApp{
         if(!n_password.equals(r_password))  
         {
             appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
         
         // update new password
         stmt = conn.prepareStatement("UPDATE Users SET pass_hash=? WHERE login=?");
-        pass_hash = sha256.toHexString(sha256.getSHA(n_password)); 
+        pass_hash = Sha256.toHexString(Sha256.getSHA(n_password)); 
 
         stmt.setString(1, pass_hash);
         stmt.setString(2, login);
@@ -117,62 +117,62 @@ public class snakeApp{
         if(rowsUpdated == 0)
         {
             appSetAttributes(PassStatus.PASS_CHANGE_FAILED,u);
-            request.getRequestDispatcher(config.snake_page)
+            request.getRequestDispatcher(Config.snake_page)
                    .forward(request, response);
             return;
         }
 
         appSetAttributes(PassStatus.PASS_CHANGE_OK, u);
-        request.getRequestDispatcher(config.snake_page)
+        request.getRequestDispatcher(Config.snake_page)
                .forward(request, response);
         return;
     }
     @GET
-    @Path(config.download_logs_url)
+    @Path(Config.download_logs_url)
     @Produces("text/plain")
     public Response getTextFile() {
  
-        File file = new File(config.log_name);
+        File file = new File(Config.log_name);
  
         ResponseBuilder response = Response.ok((Object) file);
-        response.header("Content-Disposition", "attachment; filename=\""+ config.log_name +"\"");
+        response.header("Content-Disposition", "attachment; filename=\""+ Config.log_name +"\"");
         return response.build();
     }
 
     @GET
-    @Path(config.lab_unlock_url)
+    @Path(Config.lab_unlock_url)
     public void ulock_from_page() throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
         sc.unlockLaboratory(u.getuserlogin());
 
-        response.sendRedirect(config.getAppUrl());
+        response.sendRedirect(Config.getAppUrl());
     }
 
     @GET
-    @Path(config.lab_lock_url)
+    @Path(Config.lab_lock_url)
     public void lock_from_page()throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            response.sendRedirect(config.getLoginUrl());
+            response.sendRedirect(Config.getLoginUrl());
             return;
         }
-        userDescriptor u =(userDescriptor)session.getAttribute("user_info");
+        UserDescriptor u =(UserDescriptor)session.getAttribute("user_info");
         sc.lockLaboratory(u.getuserlogin());
         
-        response.sendRedirect(config.getAppUrl());
+        response.sendRedirect(Config.getAppUrl());
     }
 
     @POST
-    @Path(config.active_users_by_mac_url) 
+    @Path(Config.active_users_by_mac_url) 
     public Response log_active_users_by_mac(
             @FormParam("mac") String mac_addr
            )throws Exception
@@ -194,8 +194,8 @@ public class snakeApp{
     }
 
     @POST
-    @Path(config.lab_sensor_unlock_url) 
-    public Response unlock_from_sensors(
+    @Path(Config.lab_Sensor_unlock_url) 
+    public Response unlock_from_Sensors(
             @FormParam("pin") int pin,
             @FormParam("rfid") String rfid
            )throws Exception
@@ -214,7 +214,7 @@ public class snakeApp{
         int rfid_size = res.getInt(3);
         byte[] rfid_raw = new byte[rfid_size];
         input.read(rfid_raw);
-        String rfid_db = sha256.toHexString(rfid_raw);
+        String rfid_db = Sha256.toHexString(rfid_raw);
         if(rfid.equals(rfid_db) == false)
         {
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
@@ -225,8 +225,8 @@ public class snakeApp{
     }
 
     @POST
-    @Path(config.lab_sensor_lock_url) 
-    public Response lock_from_sensors(
+    @Path(Config.lab_Sensor_lock_url) 
+    public Response lock_from_Sensors(
             @FormParam("pin") int pin,
             @FormParam("rfid") String rfid
            )throws Exception
@@ -245,7 +245,7 @@ public class snakeApp{
         int rfid_size = res.getInt(3);
         byte[] rfid_raw = new byte[rfid_size];
         input.read(rfid_raw);
-        String rfid_db = sha256.toHexString(rfid_raw);
+        String rfid_db = Sha256.toHexString(rfid_raw);
         if(rfid.equals(rfid_db) == false)
         {
            return Response.status(Response.Status.FORBIDDEN).entity("").build();
@@ -256,17 +256,17 @@ public class snakeApp{
     }
 
     @GET
-    @Path(config.logout_url)
+    @Path(Config.logout_url)
     public Response logout() throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
         {
-            URI uri = new URI(config.getLoginUrl());
+            URI uri = new URI(Config.getLoginUrl());
             return Response.seeOther(uri).build();
         }
 
-        URI uri = new URI(config.logout_url);
+        URI uri = new URI(Config.logout_url);
         return Response.seeOther(uri).build();
     }
 };

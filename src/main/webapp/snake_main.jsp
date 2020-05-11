@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<%@ page import = "rest.snakeApp.*" %>
-<%@ page import = "rest.privilege" %>
-<%@ page import = "rest.userDescriptor" %>
-<%@ page import = "rest.systemCore.cleanersDescriptor" %>
-<%@ page import = "rest.sensor" %>
+<%@ page import = "rest.SnakeApp.*" %>
+<%@ page import = "rest.Privilege" %>
+<%@ page import = "rest.UserDescriptor" %>
+<%@ page import = "rest.SystemCore.CleanersDescriptor" %>
+<%@ page import = "rest.Sensor" %>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "java.text.SimpleDateFormat" %>
 <%
-  userDescriptor u =(userDescriptor)request.getAttribute("u_info");  
-  ArrayList<userDescriptor> users = (ArrayList<userDescriptor>)request.getAttribute("active_users");
-  ArrayList<sensor> sensors= (ArrayList<sensor>)request.getAttribute("active_sensors");
-  cleanersDescriptor cleaners= (cleanersDescriptor)request.getAttribute("cleaning_info");
+  UserDescriptor u =(UserDescriptor)request.getAttribute("u_info");  
+  ArrayList<UserDescriptor> users = (ArrayList<UserDescriptor>)request.getAttribute("active_users");
+  ArrayList<Sensor> Sensors= (ArrayList<Sensor>)request.getAttribute("active_Sensors");
+  CleanersDescriptor cleaners= (CleanersDescriptor)request.getAttribute("cleaning_info");
 
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 %>
@@ -143,7 +143,7 @@
 
 <div class="navbar">
   <a href="/rest/app/logout">Logout</a>
-  <% if (u.getprivilege() == privilege.ADMIN) { %>
+  <% if (u.getPrivilege() == Privilege.ADMIN) { %>
     <a href="/rest/users">Edit users</a>
     <a href="/rest/mac">Edit macs</a>
   <% }%>
@@ -195,18 +195,18 @@
       %>
       </table>
     <h3>Sensors: </h3>
-      <table id ="sensors">
+      <table id ="Sensors">
       <tr>
       <td>Name</td> 
       <td>Type</td> 
       <td>Value</td> 
       </tr>
       <%
-        for(int i =0; i < sensors.size(); i++)
+        for(int i =0; i < Sensors.size(); i++)
         {
           out.println("<tr>");
-            out.println("<td>" + sensors.get(i).sensor_name + "</td>");
-            switch(sensors.get(i).type)
+            out.println("<td>" + Sensors.get(i).Sensor_name + "</td>");
+            switch(Sensors.get(i).type)
             {
               case 0:
                 out.println("<td> TEMPERATURE</td>");
@@ -218,7 +218,7 @@
                 out.println("<td>OPEN WINDOW SENSOR</td>");
                 break;
             };
-            out.println("<td>" + sensors.get(i).value+ "</td>");
+            out.println("<td>" + Sensors.get(i).value+ "</td>");
           out.println("</tr>");
         }
       %>
@@ -257,23 +257,23 @@
   </div>
 </div>
 <script>
-function createTable(sensors)
+function createTable(Sensors)
 {
   var table = document.createElement("TABLE");
-  table.setAttribute("id", "sensors");
+  table.setAttribute("id", "Sensors");
 
   var t_val = ["Name", "Type", "Value"];
   createRow(table, t_val);
 
-  for(var i = 0; i < sensors.length; i++){
-      var sensor= sensors[i];
+  for(var i = 0; i < Sensors.length; i++){
+      var Sensor= Sensors[i];
       t_val = [];
-      for (var key in sensor){
-          t_val[t_val.length] = sensor[key];
+      for (var key in Sensor){
+          t_val[t_val.length] = Sensor[key];
       }
     createRow(table, t_val);
   }
-  var table_old = document.getElementById("sensors");
+  var table_old = document.getElementById("Sensors");
   table_old.parentNode.replaceChild(table, table_old);
 }
 
@@ -285,12 +285,12 @@ function createRow(table, t_params) {
     var c_text = document.createTextNode(t_params[i]);
     if(i == 1)
     {
-      var sensor_type = t_params[i];
-      if(sensor_type == "0")
+      var Sensor_type = t_params[i];
+      if(Sensor_type == "0")
         c_text.nodeValue = "TEMPERATURE";
-      else if(sensor_type == "1")
+      else if(Sensor_type == "1")
         c_text.nodeValue = "HUMIDITY";
-      else if(sensor_type == "2")
+      else if(Sensor_type == "2")
         c_text.nodeValue = "OPEN WINDOW SENSOR";
     }
     cell.appendChild(c_text);
@@ -309,7 +309,7 @@ function createRow(table, t_params) {
         createTable(arr);
       }
     };
-    xhttp.open("GET", "/rest/sensors/measurements", true);
+    xhttp.open("GET", "/rest/Sensors/measurements", true);
     xhttp.send();
   }
 

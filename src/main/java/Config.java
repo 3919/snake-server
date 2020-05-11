@@ -1,6 +1,6 @@
 package rest;
 
-public class config
+public class Config
 {
     public static final String war_url ="/rest"; 
     public static final String login_url = "/login"; 
@@ -13,17 +13,17 @@ public class config
     public static final String edit_url = "/{id}";
     public static final String remove_url = "/remove/{id}";
 
-    public static final String sensor_url = "/sensor";
+    public static final String Sensor_url = "/Sensor";
     public static final String active_users_by_mac_url = "/update";
  
     public static final String lab_unlock_url = "/unlock";
     public static final String lab_lock_url = "/lock";
     
-    public static final String lab_sensor_unlock_url = "/sensor/unlock";
-    public static final String lab_sensor_lock_url = "/sensor/lock";
+    public static final String lab_Sensor_unlock_url = "/Sensor/unlock";
+    public static final String lab_Sensor_lock_url = "/Sensor/lock";
     
     public static final String download_logs_url= "/logs/download";
-    public static final String ajax_sensors_path= "/sensors/measurements"; 
+    public static final String ajax_Sensors_path= "/Sensors/measurements"; 
     // web resources
     public static final String login_page = "/login.html";
     public static final String snake_page = "/snake_main.jsp";

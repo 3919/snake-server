@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.logging.*;
 
 @Path("")
-public class authentication{
+public class Authentication{
 
     @Context
     private HttpServletRequest request;
@@ -30,10 +30,10 @@ public class authentication{
     private ServletConfig servletConfig;
 
     @Inject
-    private systemCore sc;
+    private SystemCore sc;
 
     @GET
-    @Path(config.login_url)
+    @Path(Config.login_url)
     public void getPage() throws Exception
     {
         try
@@ -41,10 +41,10 @@ public class authentication{
             HttpSession session = request.getSession(false);
             if(session != null)
             {
-                response.sendRedirect(config.getAppUrl());
+                response.sendRedirect(Config.getAppUrl());
                 return;
             }
-            request.getRequestDispatcher(config.login_page)
+            request.getRequestDispatcher(Config.login_page)
                    .forward(request, response);
         }catch(Exception e)
         {
@@ -54,7 +54,7 @@ public class authentication{
     }
 
     @POST
-    @Path(config.login_url)
+    @Path(Config.login_url)
 	public Response authenticate(
 		@FormParam("userid") String login,
 		@FormParam("password") String password) 
@@ -66,7 +66,7 @@ public class authentication{
             Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/pwr_snake", "wind", "alamakota");
             // create a Statement
             PreparedStatement stmt = conn.prepareStatement("select * from Users where login=? and pass_hash=?");
-            String pass_hash = sha256.toHexString(sha256.getSHA(password)); 
+            String pass_hash = Sha256.toHexString(Sha256.getSHA(password)); 
             stmt.setString(1, login);
             stmt.setString(2, pass_hash);
             //execute query
@@ -87,14 +87,14 @@ public class authentication{
 
                 HttpSession session = request.getSession(true);
                 int id = res.getInt(1);
-                int user_privilege = res.getInt(4);
+                int user_Privilege = res.getInt(4);
                 int pin = res.getInt(5);
                 String user_name = res.getString(6);
                 String user_surname = res.getString(7);
                 String user_nick = res.getString(8); 
-                userDescriptor u = new userDescriptor(id,
+                UserDescriptor u = new UserDescriptor(id,
                                                       login, 
-                                                      user_privilege,
+                                                      user_Privilege,
                                                       pin,
                                                       user_name, 
                                                       user_surname, 
@@ -104,7 +104,7 @@ public class authentication{
                 session.setAttribute("user_info", u);
                 sc.addUser(u);
                 sc.log(Level.INFO, "User: {0}, authorized",new String[] {login});
-                URI uri = new URI(config.app_url);
+                URI uri = new URI(Config.app_url);
                 return Response.seeOther(uri).build();
             }
         }
@@ -118,7 +118,7 @@ public class authentication{
 	}
 
     @GET
-    @Path(config.logout_url)
+    @Path(Config.logout_url)
     public void logout() throws Exception
     {
         HttpSession session = request.getSession(false);
@@ -128,7 +128,7 @@ public class authentication{
             return;
         }
         session.invalidate();
-        response.sendRedirect(config.getLoginUrl());
+        response.sendRedirect(Config.getLoginUrl());
     }
 
     public boolean isAccountValid(String d) throws Exception

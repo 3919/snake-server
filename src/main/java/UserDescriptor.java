@@ -1,12 +1,12 @@
 package rest;
 import java.util.Date;
 
-public class userDescriptor
+public class UserDescriptor
 {
    private String userlogin="";
 
    private int id=-1;
-   private int privilege=0;
+   private int Privilege=0;
    private int pin;
       
    private String name="";
@@ -20,12 +20,12 @@ public class userDescriptor
    byte [] rfid= new byte[1];
    
    private int activeSessions=0;
-   userDescriptor()
+   UserDescriptor()
    {
     created= new Date();
    }
 
-   userDescriptor(int e_id, 
+   UserDescriptor(int e_id, 
                   String login, 
                   int priv,
                   int u_pin,
@@ -37,7 +37,7 @@ public class userDescriptor
    {
     id = e_id;
     userlogin = login;
-    privilege = priv;
+    Privilege = priv;
     pin = u_pin;
     name = u_name;
     surname = u_surname;
@@ -56,9 +56,9 @@ public class userDescriptor
    {
     return userlogin;
    }
-   public int getprivilege()
+   public int getPrivilege()
    {
-    return privilege;
+    return Privilege;
    }
    public int getpin()
    {
@@ -82,7 +82,7 @@ public class userDescriptor
    }
    public String getrfid()
    {
-     return sha256.toHexString(rfid);
+     return Sha256.toHexString(rfid);
    }
    public Date getcreated()
    {
@@ -108,9 +108,9 @@ public class userDescriptor
    {
     userlogin = ul;
    }
-   public void setprivilege(int priv)
+   public void setPrivilege(int priv)
    {
-    privilege = priv;
+    Privilege = priv;
    }
    public void setname(String n)
    {
