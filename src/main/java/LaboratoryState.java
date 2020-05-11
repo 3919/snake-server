@@ -2,15 +2,15 @@ package rest;
 import java.util.ArrayList;
 public class LaboratoryState 
 {
-    public ArrayList<Sensor> Sensors =  new ArrayList<Sensor>();
+    public ArrayList<Sensor> activeSensors =  new ArrayList<Sensor>();
     public ArrayList<UserDescriptor> loggedUsers = new ArrayList<>();
     boolean labOpen = false;
 
-    Sensor getSensorByName(String name)
+    public Sensor getSensorByName(String name)
     {
-        for(Sensor s : Sensors)
+        for(Sensor s : activeSensors)
         {
-            if(s.Sensor_name.equals(name) == true)
+            if(s.sensor_name.equals(name) == true)
                 return s;
         } 
         return null;

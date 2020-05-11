@@ -9,6 +9,7 @@ public class UserDescriptor
    private int Privilege=0;
    private int pin;
       
+   private String email="";
    private String name="";
    
    private String surname="";
@@ -33,6 +34,7 @@ public class UserDescriptor
                   String u_surname, 
                   String u_nick, 
                   String u_accountexpire,
+                  String u_email, 
                   byte[] u_rfid)
    {
     id = e_id;
@@ -43,9 +45,15 @@ public class UserDescriptor
     surname = u_surname;
     nick =u_nick;
     accountexpire = u_accountexpire;
+    email=u_email;
     rfid = u_rfid;
     created= new Date();
     activeSessions++;
+   }
+   
+   static boolean isEmailValid(String email) {
+     String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
+     return email.matches(regex);
    }
 
    public int getid()
@@ -63,6 +71,10 @@ public class UserDescriptor
    public int getpin()
    {
     return pin;
+   }
+   public String getemail()
+   {
+     return email;
    }
    public String getname()
    {
@@ -111,6 +123,10 @@ public class UserDescriptor
    public void setPrivilege(int priv)
    {
     Privilege = priv;
+   }
+   public void setemail(String e)
+   {
+     email= e;
    }
    public void setname(String n)
    {

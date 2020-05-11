@@ -1,12 +1,10 @@
 package rest;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class DevDescriptor
 {
-    String dev;
-    int Privilege;
-    DevDescriptor(String d, int p)
-    {
-        dev = d;
-        Privilege = p;
-    }
+    public String token;
+    public int value;
 };
 

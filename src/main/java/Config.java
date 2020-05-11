@@ -9,6 +9,7 @@ public class Config
 
     public static final String user_manage_url = "/users";
     public static final String mac_manage_url = "/mac";
+    public static final String device_manage_url = "/device";
 
     public static final String edit_url = "/{id}";
     public static final String remove_url = "/remove/{id}";
@@ -29,6 +30,7 @@ public class Config
     public static final String snake_page = "/snake_main.jsp";
     public static final String edit_user_page = "/edit_user.jsp";
     public static final String edit_mac_page = "/edit_mac.jsp";
+    public static final String edit_device_page = "/edit_device.jsp";
 
 
     public static final String log_name = "snakelogs";
@@ -50,5 +52,9 @@ public class Config
 
     public static String getMacEditUrl(){
         return war_url + mac_manage_url;
+    }
+
+    public static String getDeviceEditUrl(){
+        return war_url + device_manage_url;
     }
 };

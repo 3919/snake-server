@@ -2,7 +2,6 @@ package rest;
 import java.sql.*;
 import com.fazecast.jSerialComm.*;
 
-import java.util.logging.Logger;
 import java.util.Date;
 import javax.ws.rs.*;
 import javax.ws.rs.FormParam;
@@ -20,6 +19,10 @@ import java.util.Random;
 import java.util.ArrayList;
 import com.slack.api.Slack;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
+import javax.mail.*;  
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.Properties;
 
 @ApplicationScoped
 @Path("")
@@ -36,8 +39,8 @@ public class SystemCore
         }
     };
 
-    private final static Logger logger= Logger.getLogger("SnakeLogger");  
-    private static FileHandler fh;  
+    private final static Logger logger = Logger.getLogger("SnakeLogger");  
+    private static FileHandler fh;
     @Context
     private HttpServletRequest request;
     
@@ -47,7 +50,7 @@ public class SystemCore
     private CleanersDescriptor cleaners= new CleanersDescriptor();
     private Slack slack;
     private String token;
-
+    private ArrayList<Device> sensors;
     public SystemCore()
     {
         try{
@@ -59,15 +62,74 @@ public class SystemCore
             fh.setFormatter(formatter);
             slack = Slack.getInstance();
             token = System.getenv("SLACK_TOKEN_BOT");
-
+            loadKnownSensors();
         }catch(Exception e)
         {
             e.printStackTrace();
         }
     }
+
+    public void loadKnownSensors() throws Exception
+    {
+        ArrayList<Device> s = new ArrayList<Device>();
+        PreparedStatement stmt = conn.prepareStatement("select * from Devices");
+
+        ResultSet res = stmt.executeQuery();
+        sensors = new ArrayList<Device>();
+        Device d;
+        while(res.next())
+        {
+             new Device();
+            int id= res.getInt(1);
+            String name= res.getString(2);
+            int type = res.getInt(3);
+            String token = res.getString(4);
+            sensors.add(new Device(id, name, type, token));
+        }
+    }
+
     public CleanersDescriptor getCleaners()
     {
         return cleaners;
+    }
+
+    public ArrayList<Device> getDevices()
+    {
+        return sensors;
+    }
+
+    void sendEmail(String email, String header, String msg)
+    {
+        final String username = "skn.mos.snake@gmail.com";
+        final String password = "supertajnehaslo";
+
+        Properties prop = new Properties();
+        prop.put("mail.smtp.host", "smtp.gmail.com");
+        prop.put("mail.smtp.port", "587");
+        prop.put("mail.smtp.auth", "true");
+        prop.put("mail.smtp.starttls.enable", "true"); //TLS
+        
+        Session session = Session.getInstance(prop,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                });
+       try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress("skn.mos.snake@gmail.com"));
+            message.setRecipients(
+                    Message.RecipientType.TO,
+                    InternetAddress.parse(email)
+            );
+            message.setSubject(header);
+            message.setText(msg);
+
+            Transport.send(message);
+
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        } 
     }
 
     public void drawCleaners() throws Exception
@@ -106,12 +168,11 @@ public class SystemCore
         }
     }
 
-    public void unlockLaboratory(String login)
+    public void unlockLaboratory(String login, String email)
     {
         //SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
         //boolean openedSuccessfully =locker.openPort(0);
-        //if (!openedSuccessfully)
-        //  return;
+        //if (!openedSuccessfully) //  return;
         //locker.setBaudRate(115200);
         //byte[] open_msg = {0x2,0x1};
         //locker.writeBytes(open_msg, 2);
@@ -124,12 +185,12 @@ public class SystemCore
         {
             log(Level.INFO, "Slack can't send info to channel",new String[] {});
         }
-
-        log(Level.INFO, "Laboratory unlcked by {0}",new String[] {login});
+        sendEmail(email, "Laboratry unlocked", "Laboratory open");
+        log(Level.INFO, "Laboratory unlcked by {0}", new String[]{login});
         state.labOpen=true;
     }
 
-    public void lockLaboratory(String login)
+    public void lockLaboratory(String login, String email)
     {
         //SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
         //boolean openedSuccessfully =locker.openPort(0);
@@ -140,13 +201,14 @@ public class SystemCore
         //locker.writeBytes(open_msg, 2);
         //locker.closePort();
         try{
-            for(Sensor s : state.Sensors)
+            for(Sensor s : state.activeSensors)
             {
                 if(s.type == Sensor.OPEN_WINDOW_DETECTOR && s.value == 1.0) // if window open
                 {
                     ChatPostMessageResponse response = slack.methods(token).chatPostMessage(req -> req
                                                   .channel("lab_info") // Channel ID
                                                   .text(":bomb: User @" + login + " locked laboratory. However window left opened"));
+                    sendEmail(email, "Laboratory alert", "Window left opened");
                     this.log(Level.SEVERE, "Laboratory locked. However window left opened", null);
                     break;
                 }
@@ -158,6 +220,7 @@ public class SystemCore
         {
             log(Level.INFO, "Slack can't send info to channel",new String[] {});
         }
+        sendEmail(email, "Laboratry locked", "Laboratory locked");
         this.log(Level.INFO, "Laboratory locked by {0}",new String[]{login});
         state.labOpen=false;
     }
@@ -167,18 +230,37 @@ public class SystemCore
         return state;
     }
 
+    Device getSensorByToken(String token)
+    {
+        for(Device d : sensors)
+        {
+            if(d.token.equals(token) == true)
+                return d;
+        } 
+        return null;
+    }
+
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Path(Config.Sensor_url)
-    public Response handleSensor(Sensor s)
+    public Response handleSensor(DevDescriptor s)
     {
-        Sensor f_s = state.getSensorByName(s.Sensor_name);
+        Device f_d = getSensorByToken(s.token);
+        if(f_d == null)
+        {
+            return Response.status(Response.Status.NOT_FOUND).entity("").build();
+        }
+
+        Sensor f_s = state.getSensorByName(f_d.name);
         if(f_s == null)
         {
-            state.Sensors.add(s);
+            f_s = new Sensor();
+            f_s.sensor_name = f_d.name;
+            f_s.type = f_d.type;
+            f_s.value = s.value;
+            state.activeSensors.add(f_s);
         }else
         {
-            f_s.type = s.type;
             f_s.value = s.value;
         }
         return Response.ok("").build();
@@ -188,7 +270,7 @@ public class SystemCore
     @Path(Config.ajax_Sensors_path)
     public ArrayList<Sensor> getSensors()
     {
-        return state.Sensors;
+        return state.activeSensors;
     }
 
     UserDescriptor findUser(int id)

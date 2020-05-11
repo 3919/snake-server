@@ -21,6 +21,7 @@
   pageContext.setAttribute("edited_surname",edited_u.getsurname());
   pageContext.setAttribute("edited_nick",edited_u.getnick());
   pageContext.setAttribute("edited_expire",edited_u.getaccountexpire());
+  pageContext.setAttribute("edited_email",edited_u.getemail());
   pageContext.setAttribute("edited_rfid",edited_u.getrfid());
   ArrayList<UserDescriptor> users = (ArrayList<UserDescriptor>)request.getAttribute("users");
   SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");  
@@ -218,6 +219,9 @@
       <label for="nick">Nick:</label>
       <input type="text" id="nick" placeholder="User nick" name="nick" value="${edited_nick}">
       
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="User email" name="email" value="${edited_email}">
+      
       <label for="expire">Account expire date:</label>
       <input type="text" id="expire" placeholder="Expire date" name="expire" value="${edited_expire}">
       
@@ -235,7 +239,7 @@
       <h5>Updating rules</h5>
       <p>To update user choose user from below table and use edit button belonging to him/her.</p>
 
-      <p>Compulsory fields are: Login, Privilege, Pin, account expire date. <b>Mind you</b> that you can't edit user's password.</p>
+      <p>Compulsory fields are: Login, Privilege, Pin, Email, account expire date. <b>Mind you</b> that you can't edit user's password.</p>
       <h5>General rules</h5>
       <p>Login and pin fileds have to be unique</p>
       <p>Pin's length has to be at least 4 signs</p>
@@ -254,6 +258,7 @@
           <td>Name</td> 
           <td>Surname</td> 
           <td>Nick</td> 
+          <td>Email</td> 
           <td>Account expiration date</td> 
           <td>RFID</td> 
           <td>Edit</td> 
@@ -273,6 +278,7 @@
             out.println("<td>" + users.get(i).getname() + "</td>");
             out.println("<td>" + users.get(i).getsurname() + "</td>");
             out.println("<td>" + users.get(i).getnick()+ "</td>");
+            out.println("<td>" + users.get(i).getemail()+ "</td>");
             out.println("<td>" + users.get(i).getaccountexpire()+ "</td>");
             out.println("<td>" + users.get(i).getrfid()+ "</td>");
             out.println("<td><a href=\"/rest/users/" +users.get(i).getid()+"\">edit</a></td>");

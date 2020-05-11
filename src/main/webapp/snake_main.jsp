@@ -146,6 +146,7 @@
   <% if (u.getPrivilege() == Privilege.ADMIN) { %>
     <a href="/rest/users">Edit users</a>
     <a href="/rest/mac">Edit macs</a>
+    <a href="/rest/device">Edit device</a>
   <% }%>
 </div>
 <div id ="wrapper">
@@ -205,7 +206,7 @@
         for(int i =0; i < Sensors.size(); i++)
         {
           out.println("<tr>");
-            out.println("<td>" + Sensors.get(i).Sensor_name + "</td>");
+            out.println("<td>" + Sensors.get(i).sensor_name + "</td>");
             switch(Sensors.get(i).type)
             {
               case 0:

@@ -92,6 +92,7 @@ public class Authentication{
                 String user_name = res.getString(6);
                 String user_surname = res.getString(7);
                 String user_nick = res.getString(8); 
+                String user_email = res.getString(10); 
                 UserDescriptor u = new UserDescriptor(id,
                                                       login, 
                                                       user_Privilege,
@@ -100,6 +101,7 @@ public class Authentication{
                                                       user_surname, 
                                                       user_nick,
                                                       account_expire_time,
+                                                      user_email,
                                                       rfid);
                 session.setAttribute("user_info", u);
                 sc.addUser(u);
@@ -132,7 +134,7 @@ public class Authentication{
     }
 
     public boolean isAccountValid(String d) throws Exception
-    { 
+    {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         //Parsing the given String to Date object
         Date date = formatter.parse(d);

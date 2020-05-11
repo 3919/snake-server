@@ -57,7 +57,7 @@ public class UserManagerServlet
         while(res.next())
         {
             InputStream input = res.getBinaryStream("rfid");
-            int rfid_size = res.getInt(11);
+            int rfid_size = res.getInt(12);
             byte[] rfid = new byte[rfid_size];
             input.read(rfid);
 
@@ -69,6 +69,7 @@ public class UserManagerServlet
             String user_surname = res.getString(7);
             String user_nick = res.getString(8);
             String account_expire_time = res.getString(9);
+            String email= res.getString(10);
             UserDescriptor u = new UserDescriptor(id,
                                                   login,
                                                   user_Privilege,
@@ -77,6 +78,7 @@ public class UserManagerServlet
                                                   user_surname,
                                                   user_nick,
                                                   account_expire_time,
+                                                  email,
                                                   rfid);
             users.add(u);
         }
@@ -118,6 +120,7 @@ public class UserManagerServlet
         @FormParam("surname") String surname,
         @FormParam("nick") String nick,
         @FormParam("expire") String expire,
+        @FormParam("email") String email,
         @FormParam("rfid") String rfid) throws Exception
     {
         HttpSession session = request.getSession(false);
@@ -135,7 +138,7 @@ public class UserManagerServlet
 
         ServletContext ueServlet= request.getServletContext().getContext(Config.getUserEditUrl());
         // validate required fileds
-        if(login.length() == 0 || priv< 0 ||  priv >2 || pin < 1000)
+        if(login.length() == 0 || priv< 0 ||  priv >2 || pin < 1000 || !UserDescriptor.isEmailValid(email))
         {
             editSetAttributes(EditStatus.FAILED,u, new UserDescriptor());
             ueServlet.getRequestDispatcher(Config.edit_user_page)
@@ -169,7 +172,7 @@ public class UserManagerServlet
                     return;
             }
             String pass_hash = Sha256.toHexString(Sha256.getSHA(password)); 
-            stmt = conn.prepareStatement("INSERT INTO Users(login, pass_hash, Privilege, pin, user_name, user_surname, user_nick, valid_till, rfid) VALUES(?,?,?,?,?,?,?,?,?)");
+            stmt = conn.prepareStatement("INSERT INTO Users(login, pass_hash, Privilege, pin, user_name, user_surname, user_nick, valid_till, user_email, rfid) VALUES(?,?,?,?,?,?,?,?,?,?)");
             stmt.setString(1, login);
             stmt.setString(2, pass_hash);
             stmt.setInt(3, priv);
@@ -178,12 +181,13 @@ public class UserManagerServlet
             stmt.setString(6, surname);
             stmt.setString(7, nick);
             stmt.setString(8, expire);
+            stmt.setString(9, email);
             InputStream input= new ByteArrayInputStream(raw_rfid);
-            stmt.setBinaryStream(9, input);
+            stmt.setBinaryStream(10, input);
         }
         else // validate data, than update user
         {
-            stmt = conn.prepareStatement("UPDATE Users SET login=?, Privilege=?, pin=?, user_name=?,user_surname=?, user_nick=?, valid_till=?, rfid=? WHERE id=?");
+            stmt = conn.prepareStatement("UPDATE Users SET login=?, Privilege=?, pin=?, user_name=?,user_surname=?, user_nick=?, valid_till=?, user_email=?, rfid=? WHERE id=?");
             stmt.setString(1, login);
             stmt.setInt(2, priv);
             stmt.setInt(3, pin);
@@ -191,9 +195,10 @@ public class UserManagerServlet
             stmt.setString(5, surname);
             stmt.setString(6, nick);
             stmt.setString(7, expire);
+            stmt.setString(8, email);
             InputStream input= new ByteArrayInputStream(raw_rfid);
-            stmt.setBinaryStream(8, input);
-            stmt.setInt(9, id);
+            stmt.setBinaryStream(9, input);
+            stmt.setInt(10, id);
         }
         try{
             int rowsUpdated = stmt.executeUpdate();
@@ -253,7 +258,7 @@ public class UserManagerServlet
             }
 
             InputStream input = res.getBinaryStream("rfid");
-            int rfid_size = res.getInt(11);
+            int rfid_size = res.getInt(12);
             byte[] rfid = new byte[rfid_size];
             input.read(rfid);
 
@@ -264,6 +269,7 @@ public class UserManagerServlet
             String user_surname = res.getString(7);
             String user_nick = res.getString(8);
             String account_expire_time = res.getString(9);
+            String email= res.getString(10);
             UserDescriptor edited_user = new UserDescriptor(Integer.parseInt(id),
                                                        login,
                                                        user_Privilege,
@@ -272,6 +278,7 @@ public class UserManagerServlet
                                                        user_surname,
                                                        user_nick,
                                                        account_expire_time,
+                                                       email,
                                                        rfid);
             editSetAttributes(EditStatus.OK, u, edited_user);
             ueServlet.getRequestDispatcher(Config.edit_user_page)
@@ -306,7 +313,7 @@ public class UserManagerServlet
         PreparedStatement stmt = conn.prepareStatement("delete from Users where id=?");
         stmt.setString(1, id);
         try
-        { 
+        {
             int rowsUpdated = stmt.executeUpdate();
             if(rowsUpdated == 0)
             {
@@ -326,5 +333,4 @@ public class UserManagerServlet
         }
         return;
     }
-
 };
