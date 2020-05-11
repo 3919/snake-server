@@ -22,9 +22,9 @@ public class Authentication{
 
     @Context
     private HttpServletRequest request;
-    
-	@Context
-	private HttpServletResponse response;
+
+    @Context
+    private HttpServletResponse response;
 
     @Context
     private ServletConfig servletConfig;
@@ -55,9 +55,9 @@ public class Authentication{
 
     @POST
     @Path(Config.login_url)
-	public Response authenticate(
-		@FormParam("userid") String login,
-		@FormParam("password") String password) 
+    public Response authenticate(
+        @FormParam("userid") String login,
+        @FormParam("password") String password) 
     {
         //create connection for a server installed in localhost, with a user "wind"
         try{
@@ -115,7 +115,7 @@ public class Authentication{
 
         sc.log(Level.WARNING, "Unauthorized logging action detected. Login: {0}",new String[] {login});
         return Response.status(Response.Status.FORBIDDEN).entity("You are not a member of skn mos").build();
-	}
+    }
 
     @GET
     @Path(Config.logout_url)

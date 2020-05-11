@@ -33,8 +33,8 @@ public class MacManagerServlet
     @Context
     private HttpServletRequest request;
     
-	@Context
-	private HttpServletResponse response;
+    @Context
+    private HttpServletResponse response;
     
     @Inject
     private SystemCore sc;
@@ -94,9 +94,9 @@ public class MacManagerServlet
     // otherwise try to update date for requested id
     @POST
     public void addMac(
-		@FormParam("userid") int id,
-		@FormParam("login") String login,
-		@FormParam("mac") String mac) throws Exception
+        @FormParam("userid") int id,
+        @FormParam("login") String login,
+        @FormParam("mac") String mac) throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)

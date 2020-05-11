@@ -110,8 +110,8 @@ public class SystemCore
     {
         //SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
         //boolean openedSuccessfully =locker.openPort(0);
-		//if (!openedSuccessfully)
-		//	return;
+        //if (!openedSuccessfully)
+        //  return;
         //locker.setBaudRate(115200);
         //byte[] open_msg = {0x2,0x1};
         //locker.writeBytes(open_msg, 2);
@@ -133,8 +133,8 @@ public class SystemCore
     {
         //SerialPort locker = SerialPort.getCommPort("/dev/ttyUSB0");
         //boolean openedSuccessfully =locker.openPort(0);
-		//if (!openedSuccessfully)
-		//	return;
+        //if (!openedSuccessfully)
+        //  return;
         //locker.setBaudRate(115200);
         //byte[] open_msg = {0x2,0x2};
         //locker.writeBytes(open_msg, 2);

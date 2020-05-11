@@ -15,13 +15,13 @@ public class Config
 
     public static final String Sensor_url = "/Sensor";
     public static final String active_users_by_mac_url = "/update";
- 
+
     public static final String lab_unlock_url = "/unlock";
     public static final String lab_lock_url = "/lock";
-    
+
     public static final String lab_Sensor_unlock_url = "/Sensor/unlock";
     public static final String lab_Sensor_lock_url = "/Sensor/lock";
-    
+
     public static final String download_logs_url= "/logs/download";
     public static final String ajax_Sensors_path= "/Sensors/measurements"; 
     // web resources
@@ -30,7 +30,7 @@ public class Config
     public static final String edit_user_page = "/edit_user.jsp";
     public static final String edit_mac_page = "/edit_mac.jsp";
 
-    
+
     public static final String log_name = "snakelogs";
     public static String getLoginUrl(){
         return war_url + login_url;

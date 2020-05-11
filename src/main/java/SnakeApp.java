@@ -35,8 +35,8 @@ public class SnakeApp{
     @Context
     private HttpServletRequest request;
     
-	@Context
-	private HttpServletResponse response;
+    @Context
+    private HttpServletResponse response;
     
     @Inject
     private SystemCore sc;
@@ -70,9 +70,9 @@ public class SnakeApp{
 
     @POST
     public void changeUserPassword(
-		@FormParam("old_pass") String o_password, 
-		@FormParam("new_pass") String n_password, 
-		@FormParam("new_pass_repeated") String r_password) 
+        @FormParam("old_pass") String o_password, 
+        @FormParam("new_pass") String n_password, 
+        @FormParam("new_pass_repeated") String r_password) 
         throws Exception
     {
         HttpSession session = request.getSession(false);

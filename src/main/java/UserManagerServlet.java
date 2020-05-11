@@ -32,8 +32,8 @@ public class UserManagerServlet
     @Context
     private HttpServletRequest request;
     
-	@Context
-	private HttpServletResponse response;
+    @Context
+    private HttpServletResponse response;
     
     @Inject
     private SystemCore sc;
@@ -109,16 +109,16 @@ public class UserManagerServlet
     // otherwise try to update date for requested id
     @POST
     public void addUser(
-		@FormParam("userid") int id,
-		@FormParam("login") String login,
-		@FormParam("password") String password,
-		@FormParam("Privilege") int priv,
-		@FormParam("pin") int pin,
-		@FormParam("name") String name,
-		@FormParam("surname") String surname,
-		@FormParam("nick") String nick,
-		@FormParam("expire") String expire,
-		@FormParam("rfid") String rfid) throws Exception
+        @FormParam("userid") int id,
+        @FormParam("login") String login,
+        @FormParam("password") String password,
+        @FormParam("Privilege") int priv,
+        @FormParam("pin") int pin,
+        @FormParam("name") String name,
+        @FormParam("surname") String surname,
+        @FormParam("nick") String nick,
+        @FormParam("expire") String expire,
+        @FormParam("rfid") String rfid) throws Exception
     {
         HttpSession session = request.getSession(false);
         if(session == null)
